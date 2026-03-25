@@ -1,0 +1,26 @@
+# Dependências
+node_modules/
+
+# Build
+frontend/dist/
+**/dist/
+
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# SQLite (dados locais)
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,13 @@
+{
+  "name": "guto-express-v53",
+  "private": true,
+  "description": "Scripts de conveniência — instale dependências em backend/ e frontend/",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "seed:integrations": "npm run seed:integrations --prefix backend",
+    "test": "npm test --prefix backend",
+    "test:routing": "npm run test:routing --prefix backend"
+  }
+}

@@ -1,0 +1,21 @@
+1. Extraia o ZIP.
+2. Instale o Node.js LTS no Windows, se ainda nao tiver.
+
+FORMA MAIS SIMPLES (tudo em UMA porta, sem Vite/5173):
+3. Duplo clique em RECUPERAR-TUDO.cmd
+   OU duplo clique em INSTALAR-E-INICIAR.cmd
+4. Abra no navegador: http://127.0.0.1:3210/
+   (painel + API no mesmo endereco)
+5. Health da API: http://127.0.0.1:3210/health
+
+Opcional - desenvolvimento com atualizacao ao vivo (precisa porta 5173 livre):
+- SUBIR-PAINEL.cmd  -> http://127.0.0.1:5173/
+
+Se algo falhar: PARAR.cmd (mata todos os node.exe) e tente de novo.
+
+Integracoes (iFood, Neemo, etc.): rode na raiz "npm run seed:integrations" se sumirem do banco.
+Veja docs\INTEGRACOES.md
+
+Backup do banco (recomendado 1x ao dia):
+  npm run backup:db
+  (copia para backend\data\backups\)
