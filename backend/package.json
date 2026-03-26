@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "seed:integrations": "node scripts/seed-integrations.mjs",
     "test:routing": "node scripts/test-routing.mjs",
-    "test:smoke": "node --check src/server.js"
+    "test:smoke": "node --check src/server.js",
+    "test:ci": "npm run test:smoke && node scripts/ci-check-modules.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",

@@ -8,6 +8,8 @@
     "build:frontend": "npm run build --prefix frontend",
     "seed:integrations": "npm run seed:integrations --prefix backend",
     "test": "npm test --prefix backend",
-    "test:routing": "npm run test:routing --prefix backend"
+    "test:routing": "npm run test:routing --prefix backend",
+    "test:ci": "npm run test:ci --prefix backend",
+    "ci": "npm run test:ci --prefix backend && npm run build --prefix frontend"
   }
 }
