@@ -211,6 +211,12 @@ Use `dotenv` no arranque (`import 'dotenv/config'` em `server.js`).
 
 ---
 
+## Equipa de desenvolvimento
+
+Onboarding, fluxo Git/CI, proxy Vite em dev e **backlog priorizado (P0/P1/P2)** para fechar o sistema: ver **[EQUIPE-DESENVOLVIMENTO.md](./EQUIPE-DESENVOLVIMENTO.md)**.
+
+---
+
 ## Legado
 
 A pasta `apps/admin-web/` foi substituída por `frontend/`; novas funcionalidades de UI devem ir apenas para `frontend/`.

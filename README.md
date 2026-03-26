@@ -10,6 +10,7 @@ Backend Node + Express + SQLite e **painel operacional** em React (estrutura mod
 - `docs/BACKEND.md` — rotas e envs do servidor.
 - `docs/INTEGRACOES.md` — webhooks e seed.
 - `docs/TESTE-RAPIDO.md` — checklist manual.
+- `docs/EQUIPE-DESENVOLVIMENTO.md` — guia completo da equipa (onboarding, CI, backlog P0/P1/P2).
 
 Na **raiz**: `package.json` com atalhos `npm run dev:backend`, `npm run dev:frontend`, `npm run seed:integrations` (requer `npm install` em `backend/` e `frontend/`).
 
@@ -33,7 +34,7 @@ npm run dev
 
 Abra `http://127.0.0.1:5173/`
 
-Opcional: `frontend/.env` com `VITE_API_URL=http://127.0.0.1:3210`. O painel usa **WebSocket** `ws://…/ws/ops` para snapshot em tempo quase real (fallback HTTP automático); `VITE_OPS_WS=0` desliga o WS.
+Em dev, pode **omitir** `VITE_API_URL`: o Vite faz **proxy** para a API em `3210` (ou `VITE_PROXY_API`). Para build de produção, defina `VITE_API_URL` com a URL pública da API. **WebSocket** `ws://…/ws/ops` (proxy em dev); `VITE_OPS_WS=0` desliga o WS.
 
 Backend: `OPS_WS_DISABLED=1` ou `OPS_WS_BROADCAST_MS` — ver `backend/.env.example` e `docs/ARQUITETURA.md`.
 

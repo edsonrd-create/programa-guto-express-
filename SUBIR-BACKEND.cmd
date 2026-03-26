@@ -8,10 +8,10 @@ if not exist "package.json" (
   exit /b 1
 )
 echo.
-echo === Guto V53 - Backend + painel (se existir dist) ===
+echo === Guto V53 - API + WebSocket ===
 echo Pasta: %CD%
-echo Painel + API: http://127.0.0.1:3210/
-echo Health:       http://127.0.0.1:3210/health
+echo API:    http://127.0.0.1:3210/health   (PORT=3220 se 3210 ocupada)
+echo Painel dev: rode SUBIR-PAINEL.cmd -^> http://127.0.0.1:5173/
 echo.
 call npm run dev
 echo.

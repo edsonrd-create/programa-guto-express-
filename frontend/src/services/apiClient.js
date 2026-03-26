@@ -1,18 +1,34 @@
 /**
  * Cliente HTTP do painel → API Express (backend).
  * @see getApiPublicBase
+ *
+ * Em dev, sem `VITE_API_URL`, usa URL vazia → pedidos relativos ao Vite e passam pelo `server.proxy`.
+ * Em produção ou com `VITE_API_URL` definido, usa a base absoluta da API.
  */
 export function getApiPublicBase() {
-  const raw = (import.meta.env.VITE_API_URL || 'http://127.0.0.1:3210').trim();
+  const envRaw = import.meta.env.VITE_API_URL;
+  if (import.meta.env.DEV && (envRaw === undefined || String(envRaw).trim() === '')) {
+    return '';
+  }
+  const raw = (envRaw || 'http://127.0.0.1:3210').trim();
   return raw.replace(/\/$/, '');
 }
 
 /** URL WebSocket do hub operacional (mesmo host/porta que a API). */
 export function getWsOpsUrl(wsPath = '/ws/ops') {
-  const u = new URL(getApiPublicBase());
-  u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
-  u.pathname = wsPath.startsWith('/') ? wsPath : `/${wsPath}`;
+  const pathOnly = wsPath.startsWith('/') ? wsPath : `/${wsPath}`;
   const secret = (import.meta.env.VITE_OPS_WS_TOKEN || '').trim();
+  const q = secret ? `?token=${encodeURIComponent(secret)}` : '';
+
+  const base = getApiPublicBase();
+  if (!base && typeof window !== 'undefined') {
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${window.location.host}${pathOnly}${q}`;
+  }
+
+  const u = new URL(base);
+  u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
+  u.pathname = pathOnly;
   u.search = secret ? `token=${encodeURIComponent(secret)}` : '';
   u.hash = '';
   return u.toString();
@@ -20,6 +36,7 @@ export function getWsOpsUrl(wsPath = '/ws/ops') {
 
 function joinPath(base, path) {
   const p = path.startsWith('/') ? path : `/${path}`;
+  if (!base) return p;
   return `${base}${p}`;
 }
 
