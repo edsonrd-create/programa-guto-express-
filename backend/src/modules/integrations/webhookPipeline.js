@@ -66,13 +66,23 @@ function markJobErrorOrRetry(db, job, error) {
   const duplicate = String(error.message || '').includes('UNIQUE');
 
   const shouldFail = duplicate || attempts >= maxAttempts;
-  db.prepare(
-    `UPDATE integration_webhook_jobs
-       SET status = ?,
-           last_error = ?,
-           processed_at = CASE WHEN status = 'failed' THEN CURRENT_TIMESTAMP ELSE NULL END
-     WHERE id = ?`
-  ).run(shouldFail ? 'failed' : 'pending', String(error.message || error), job.id);
+  const msg = String(error.message || error);
+  if (shouldFail) {
+    db.prepare(
+      `UPDATE integration_webhook_jobs
+         SET status = 'failed',
+             last_error = ?,
+             processed_at = CURRENT_TIMESTAMP
+       WHERE id = ?`
+    ).run(msg, job.id);
+  } else {
+    db.prepare(
+      `UPDATE integration_webhook_jobs
+         SET status = 'pending',
+             last_error = ?
+       WHERE id = ?`
+    ).run(msg, job.id);
+  }
 }
 
 export async function processOneWebhookJob(db) {

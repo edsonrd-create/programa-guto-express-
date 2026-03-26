@@ -59,7 +59,6 @@ call npm run seed:integrations
 echo.
 echo [5/5] Iniciando servidor unico (API + painel na mesma porta)...
 start "Guto V53 - API + Painel" cmd /k "%~dp0SUBIR-BACKEND.cmd"
-
 echo.
 echo Aguarde alguns segundos e abra no navegador:
 echo   http://127.0.0.1:3210/        ^(painel^)

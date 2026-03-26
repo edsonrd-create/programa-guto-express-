@@ -12,7 +12,8 @@ export function getWsOpsUrl(wsPath = '/ws/ops') {
   const u = new URL(getApiPublicBase());
   u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
   u.pathname = wsPath.startsWith('/') ? wsPath : `/${wsPath}`;
-  u.search = '';
+  const secret = (import.meta.env.VITE_OPS_WS_TOKEN || '').trim();
+  u.search = secret ? `token=${encodeURIComponent(secret)}` : '';
   u.hash = '';
   return u.toString();
 }

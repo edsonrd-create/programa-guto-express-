@@ -1,5 +1,13 @@
 import { WebSocketServer } from 'ws';
+import { timingSafeEqualString } from '../lib/timingSafe.js';
 import { buildOperationalSnapshot } from '../modules/ops/snapshotBuilder.js';
+
+function tokenFromUpgradeUrl(url) {
+  const raw = url || '';
+  const q = raw.indexOf('?');
+  if (q < 0) return '';
+  return new URLSearchParams(raw.slice(q + 1)).get('token') || '';
+}
 
 /**
  * Hub WebSocket: envia `ops_snapshot` ao conectar e em broadcast periódico
@@ -17,8 +25,20 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
 
   const path = options.path || '/ws/ops';
   const broadcastMs = Math.max(2000, Number(process.env.OPS_WS_BROADCAST_MS || 4000) || 4000);
+  const opsWsToken = (process.env.OPS_WS_TOKEN || '').trim();
 
-  const wss = new WebSocketServer({ server: httpServer, path });
+  /** @type {import('ws').ServerOptions} */
+  const wsOpts = { server: httpServer, path };
+  if (opsWsToken) {
+    wsOpts.verifyClient = (info, cb) => {
+      const got = tokenFromUpgradeUrl(info.req.url);
+      const ok = got.length > 0 && timingSafeEqualString(got, opsWsToken);
+      if (ok) cb(true);
+      else cb(false, 401, 'Unauthorized');
+    };
+  }
+
+  const wss = new WebSocketServer(wsOpts);
 
   wss.on('error', (err) => {
     console.error('[ws/ops]', err?.code || err?.message || err);
@@ -70,7 +90,11 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
     });
   });
 
-  console.log(`[ws/ops] WebSocket em ws(s)://<host>:<porta>${path} (broadcast ${broadcastMs}ms)`);
+  console.log(
+    `[ws/ops] WebSocket em ws(s)://<host>:<porta>${path} (broadcast ${broadcastMs}ms${
+      opsWsToken ? '; token obrigatorio (?token=)' : ''
+    })`,
+  );
 
   return {
     close: () => {

@@ -38,7 +38,12 @@ export default function AtendimentoPage() {
       setItemName('Pizza');
       setQty(1);
     } catch (e) {
-      setErr(e.body?.message || JSON.stringify(e.body) || e.message);
+      const issues = e.body?.issues;
+      setErr(
+        Array.isArray(issues) && issues.length
+          ? issues.map((i) => `${i.path}: ${i.message}`).join('; ')
+          : e.body?.message || JSON.stringify(e.body) || e.message,
+      );
     }
     setBusy(false);
   }

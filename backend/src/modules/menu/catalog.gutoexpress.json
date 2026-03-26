@@ -1,0 +1,543 @@
+{
+  "source": [
+    "https://www.gutoexpress.com.br/",
+    "https://www.gutoexpress.com.br/cardapio/"
+  ],
+  "generatedAt": "2026-03-26T00:41:25.075Z",
+  "meta": {
+    "nota": "Preços de pizza = Pizza Grande (codtaman 15) extraídos do HTML (home + /cardapio/). Outros tamanhos no site.",
+    "pizzasComPrecoPizzaGrande": 79,
+    "totalSaboresCardapio": 80
+  },
+  "combos": [
+    {
+      "nome": "Pizza Grande Promocional",
+      "descricao": "PROMOÇÃO IMPERDÍVEL NA GUTO EXPRESS! Pizza Grande com 10 fatias e 2 sabores Por apenas R$ 39,99!",
+      "preco": "R$ 39,99"
+    },
+    {
+      "nome": "PIZZA GRANDE MAIS COCA COLA 2L",
+      "descricao": "1 PIZZA GRANDE MAIS 1 COCA COLA 2L POR APENAS R$ 55,99 VALIDO DE TERÇA A QUINTA FEIRA",
+      "preco": "R$ 55,99"
+    },
+    {
+      "nome": "Combo familia",
+      "descricao": "Combo Familia 2 pizza Grandes 2 sabores , cada pizza mais um refri 2l ! Tudo isso por apenas R$ 95,99",
+      "preco": "R$ 95,99"
+    },
+    {
+      "nome": "Combo Gigante",
+      "descricao": "🍕 1 Pizza Gigante (16 fatias) – Escolha até 4 sabores 🍫 1 Pizza Broto Docê 🥤 1 Refrigerante Cine 2L Tudo isso por apenas R$ 92,99",
+      "preco": "R$ 92,99"
+    },
+    {
+      "nome": "Combo Pizza Big",
+      "descricao": "Combo Pizza Big - Pizza de 12 fatias mais refri cine 2L Tudo isso por apenas R$ 65,99",
+      "preco": "R$ 65,99"
+    },
+    {
+      "nome": "Combo Super Big",
+      "descricao": "02 Pizzas Big (12 Fatias - 2 Sabores Cada) + Broto Doce + Coca-Cola 2L por R$125,99",
+      "preco": "R$ 125,99"
+    }
+  ],
+  "pizzas": [
+    {
+      "nome": "Abacaxi",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate Branco, Abacaxi",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Banana Com Canela",
+      "descricao": "Categoria: Doces · Mussarela, Banana, Canela em Pó, Leite Condensado",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Banana Nevada",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate Branco, Banana, Leite Condensado, coco",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Banana Nevada ao Forno",
+      "descricao": "Categoria: Doces · Mussarela, Banana, Chocolate Branco, Coco Ralado",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Banoffe",
+      "descricao": "Categoria: Doces · Mussarela, Banana, Doce de Leite",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Beijinho",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate Branco, Coco Ralado",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Brigadeiro",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Granulado",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Charge",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Doce de Leite, Amendoim",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Chocolate ao Leite",
+      "descricao": "Categoria: Doces · Chocolate ao Leite",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Chocolate Branco",
+      "descricao": "Categoria: Doces · Chocolate Branco",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Choconana",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Banana, Leite Condensado",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Confeti",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Confete",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Dois Amores",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Chocolate Branco",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Nutella Com Morango e Kit Kat",
+      "descricao": "Categoria: Doces · Nutella, Morango, Kit Kat",
+      "preco": "R$ 89,99"
+    },
+    {
+      "nome": "Oreo",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Bolacha Oreo",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Paçoquinha",
+      "descricao": "Categoria: Doces · Mussarela, Doce de Leite, Paçoquinha",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Paçoquinha",
+      "descricao": "Categoria: Doces · Mussarela, Doce de Leite, Paçoquinha",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Prestígio",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, coco",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Sensação",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Morango",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Sensação Branca",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate Branco, Morango",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Triângulo Amoroso",
+      "descricao": "Categoria: Doces · Mussarela, Chocolate ao Leite, Chocolate Branco, Morango",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "SONHO DE VALSA",
+      "descricao": "Categoria: Especiais · Mussarela, Chocolate ao Leite, Sonho de Valsa",
+      "preco": "R$ 83,00"
+    },
+    {
+      "nome": "Americana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Bacon, Milho, Cebola, Ovos, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Atum",
+      "descricao": "Categoria: Tradicionais · Mussarela, Atum, Cebola, Azeitona, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Bacon",
+      "descricao": "Categoria: Tradicionais · Mussarela, Bacon, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "BACON BARBECUE",
+      "descricao": "Categoria: Tradicionais · Molho, Bacon, Molho Barbecue, Mussarela, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Bacon c\\ Tomate",
+      "descricao": "Categoria: Tradicionais · Mussarela, Bacon, Tomate, Orégano",
+      "preco": "Pizza Grande — consulte no site"
+    },
+    {
+      "nome": "Bacon Com Barbecue",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Bacon, Barbecue, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Bacon Com Cheddar",
+      "descricao": "Categoria: Tradicionais · Mussarela, Bacon, Cheddar, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Baiana",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Presunto, Cebola, Pimentão, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Bauru",
+      "descricao": "Categoria: Tradicionais · Mussarela, Presunto, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Bolonhesa",
+      "descricao": "Categoria: Tradicionais · Mussarela, Carne Moída Temperada Com Alho e Cebola, Pimentão, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Brócolis",
+      "descricao": "Categoria: Tradicionais · Mussarela, Brócolis, Bacon, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Calabresa",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Calabresa Com Barbecue",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Calabresa, Barbecue, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Calabresa Com Cebola",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Cebola, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Calabresa Com Cheddar",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Cheddar, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Calabresa Com Tomate",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Tomate, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Canadense",
+      "descricao": "Categoria: Tradicionais · Mussarela, Lombinho, Champignon, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Catubresa",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Champignon",
+      "descricao": "Categoria: Tradicionais · Champignon",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Cinco Queijos",
+      "descricao": "Categoria: Tradicionais · Mussarela, Parmesão, Provolone, Catupiry, Cheddar, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Crocante",
+      "descricao": "Categoria: Tradicionais · Mussarela, Bacon, Batata Palha, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Da Casa",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Frango, Milho, Ovos, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Dois Queijos",
+      "descricao": "Categoria: Tradicionais · Mussarela, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Escarola",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Escarola, Bacon, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Fogazza",
+      "descricao": "Categoria: Tradicionais · Mussarela, Palmito, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Frango",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Frango Barbecue",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango ao Molho da Casa, Barbecue, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Frango Com Catupiry",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Frango Com Cheddar",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango, Cheddar, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Frango com Milho",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango, Milho, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Franpalha",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango, Batata Palha, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Guto Express",
+      "descricao": "Categoria: Tradicionais · Mussarela, Bacon, Calabresa Picada, Milho, Cebola, Azeitona, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Havaiana",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Lombo, Abacaxi, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Lombinho",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Lombo, Orégano",
+      "preco": "R$ 70,00"
+    },
+    {
+      "nome": "Lombinho Com Barbecue",
+      "descricao": "Categoria: Tradicionais · Lombinho, Barbecue",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Lombinho Com Catupiry",
+      "descricao": "Categoria: Tradicionais · Mussarela, Lombinho, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Lombinho Com Cheddar",
+      "descricao": "Categoria: Tradicionais · Mussarela, Lombinho, Cheddar, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Lombo Com Bacon",
+      "descricao": "Categoria: Tradicionais · Mussarela, Lombo, Bacon, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Marguerita",
+      "descricao": "Categoria: Tradicionais",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Mexicana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa Picada, Cebola, Pimenta Calabresa, Pimentão, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Milho",
+      "descricao": "Categoria: Tradicionais · Mussarela, Milho, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Milho Com Bacon",
+      "descricao": "Categoria: Tradicionais · Mussarela, Milho, Bacon, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Mussarela",
+      "descricao": "Categoria: Tradicionais · Mussarela, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Nachos Com Carne Moída",
+      "descricao": "Categoria: Tradicionais · Mussarela, Carne Moída Temperada Com Alho e Cebola, Cheddar, Doritos, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Nachos Com Frango",
+      "descricao": "Categoria: Tradicionais · Mussarela, Frango Desfiado, Cheddar, Orégano, Doritos",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Napolitana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Tomate, Parmesão, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Palmito",
+      "descricao": "Categoria: Tradicionais · Mussarela, Palmito, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Parmegiana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Presunto, Tomate, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Paulista",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa, Ovos, Cebola, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Portuguesa",
+      "descricao": "Categoria: Tradicionais · Mussarela, Presunto, Ovos, Cebola, Azeitona, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Quatro Queijos",
+      "descricao": "Categoria: Tradicionais · Mussarela, Parmesão, Provolone, Catupiry, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Quatro Queijos Com Bacon",
+      "descricao": "Categoria: Tradicionais · Mussarela, Parmesão, Provolone, Catupiry, Bacon, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Quatro Queijos Com Tomate",
+      "descricao": "Categoria: Tradicionais · Tomate",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Romana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Presunto, Milho, Tomate, Orégano",
+      "preco": "R$ 70,50"
+    },
+    {
+      "nome": "Strogonoff de Carne",
+      "descricao": "Categoria: Tradicionais · Molho, Mussarela, Strogonoff de Carne Preparado Com Alho e Cebola, Batata Palha, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Strogonoff de Frango",
+      "descricao": "Categoria: Tradicionais · Mussarela, Strogonoff de Frango Preparado Com Alho e Cebola, Batata Palha, Orégano",
+      "preco": "R$ 82,99"
+    },
+    {
+      "nome": "Toscana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Calabresa Picada, Ovos, Requeijão, Azeitona, Orégano",
+      "preco": "R$ 70,99"
+    },
+    {
+      "nome": "Vegetariana",
+      "descricao": "Categoria: Tradicionais · Mussarela, Tomate, Milho, Palmito, Cebola, Azeitona, Orégano",
+      "preco": "R$ 70,50"
+    }
+  ],
+  "bebidas": [
+    {
+      "nome": "Cini Abacaxi 2L",
+      "descricao": "Refrigerante",
+      "preco": "R$ 8,50"
+    },
+    {
+      "nome": "Cini Framboesa 2L",
+      "descricao": "Refrigerante",
+      "preco": "R$ 8,50"
+    },
+    {
+      "nome": "Cini Guaraná 2L",
+      "descricao": "Refrigerante",
+      "preco": "R$ 8,50"
+    },
+    {
+      "nome": "Cini Laranjinha 2L",
+      "descricao": "Refrigerante",
+      "preco": "R$ 8,50"
+    },
+    {
+      "nome": "Coca cola 1l",
+      "descricao": "Coca-Cola Original 1l",
+      "preco": "R$ 9,98"
+    },
+    {
+      "nome": "Coca-Cola Lata 350ml",
+      "descricao": "Com sabor inconfundível e único, a Coca-Cola Original é o refrigerante mais tradicional e consumido no mundo inteiro!",
+      "preco": "R$ 6,00"
+    },
+    {
+      "nome": "Coca-Cola Original 2L",
+      "descricao": "Com sabor inconfundível e único, a Coca-Cola Original é o refrigerante mais tradicional e consumido no mundo inteiro!",
+      "preco": "R$ 15,00"
+    },
+    {
+      "nome": "Coca-Cola Original Pet 600ml",
+      "descricao": "Com sabor inconfundível e único, a Coca-Cola Original é o refrigerante mais tradicional e consumido no mundo inteiro!",
+      "preco": "R$ 7,00"
+    },
+    {
+      "nome": "Coca-Cola Original Zero Açúcar Pet 2L",
+      "descricao": "A Coca-Cola Sem Açúcar é um refrigerante que não contém calorias!",
+      "preco": "R$ 15,00"
+    },
+    {
+      "nome": "coca cola zero 1l",
+      "descricao": "Coca-Cola Sem Açúcar garrafa 1l",
+      "preco": "R$ 9,98"
+    },
+    {
+      "nome": "Coca-Cola Zero Açúcar Lata 350ml",
+      "descricao": "A Coca-Cola Sem Açúcar é um refrigerante que não contém calorias!",
+      "preco": "R$ 6,00"
+    },
+    {
+      "nome": "Fanta Laranja Pet 2L",
+      "descricao": "Feita com suco de laranja de verdade, a Fanta é um clássico na mesa do brasileiro!",
+      "preco": "R$ 14,00"
+    },
+    {
+      "nome": "Água Sem Gás",
+      "descricao": "Água",
+      "preco": "R$ 3,00"
+    },
+    {
+      "nome": "Del Valle Laranja 1L",
+      "descricao": "De acordo com a filosofia Del Valle, quem planta amor, colhe carinho. Por isso, seleciona as melhores frutas para levar os melhores produtos até a sua família.",
+      "preco": "R$ 10,00"
+    },
+    {
+      "nome": "Fanta Uva Pet 2L",
+      "descricao": "O delicioso refrigerante de fruta feito com 5,5% de suco de uva e limão e 28% menos açúcares em relação à média de mercado.",
+      "preco": "R$ 14,00"
+    },
+    {
+      "nome": "Guaraná Antarctica Pet 2L",
+      "descricao": "O clássico dos clássicos, combina com tudo!",
+      "preco": "R$ 14,00"
+    },
+    {
+      "nome": "Kuat Guaraná Pet 2L",
+      "descricao": "Refresque-se com um Kuat! Refrigerante sabor guaraná ideal para matar sua sede, para acompanhar refeições ou tomar ao longo do dia.",
+      "preco": "R$ 9,50"
+    },
+    {
+      "nome": "NÃO ACOMPANHA BEBIDAS",
+      "descricao": "SEM BEBIDAS",
+      "preco": "R$ 0,00"
+    },
+    {
+      "nome": "Sprite Limão Pet 2L",
+      "descricao": "Sprite, experimente o sabor refrescante. Com sabor único é o refrigerante de limão mais vendido no mundo.",
+      "preco": "R$ 13,00"
+    }
+  ]
+}

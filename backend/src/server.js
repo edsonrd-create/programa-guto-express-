@@ -18,11 +18,41 @@ import { buildOperationalSnapshot } from './modules/ops/snapshotBuilder.js';
 import { createChatRouter } from './modules/ai/chatRouter.js';
 import { isWebhookAsyncMode, startWebhookWorker } from './modules/integrations/webhookPipeline.js';
 import { attachOpsSocketHub } from './sockets/opsSocket.js';
+import { timingSafeEqualString } from './lib/timingSafe.js';
 
 initBusinessMetrics(db);
 
+/** Número de proxies na frente do Node (ex.: 1 com nginx). Necessário para `req.ip` e rate limit por IP. */
+function trustProxyHopsFromEnv() {
+  const v = (process.env.TRUST_PROXY ?? '').trim().toLowerCase();
+  if (!v) return null;
+  if (v === '1' || v === 'true' || v === 'on' || v === 'yes') return 1;
+  const n = Number(v);
+  if (Number.isFinite(n) && n >= 1 && n <= 32) return Math.trunc(n);
+  return null;
+}
+
+/** Se `METRICS_TOKEN` estiver definido, `GET /metrics` exige o mesmo valor em `Authorization: Bearer ...` ou query `?token=`. */
+function metricsTokenGate(req, res, next) {
+  const expected = (process.env.METRICS_TOKEN || '').trim();
+  if (!expected) return next();
+  const auth = String(req.headers.authorization || '');
+  const m = /^Bearer\s+(.+)$/i.exec(auth.trim());
+  const bearer = m ? m[1].trim() : '';
+  const q = typeof req.query.token === 'string' ? req.query.token.trim() : '';
+  const provided = bearer || q;
+  if (!timingSafeEqualString(provided, expected)) {
+    res.setHeader('WWW-Authenticate', 'Bearer realm="metrics"');
+    return res.status(401).json({ ok: false, message: 'Metrics nao autorizadas' });
+  }
+  next();
+}
+
 export function buildServerApp() {
   const app = express();
+  const trustHops = trustProxyHopsFromEnv();
+  if (trustHops != null) app.set('trust proxy', trustHops);
+
   app.use(cors());
   app.use(
     express.json({
@@ -36,7 +66,7 @@ export function buildServerApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true, service: 'guto-express-backend' }));
 
-  app.get('/metrics', (req, res, next) => {
+  app.get('/metrics', metricsTokenGate, (req, res, next) => {
     handleMetrics(req, res).catch(next);
   });
 

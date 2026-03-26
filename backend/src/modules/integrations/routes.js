@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { normalizeIntegrationPayload } from './normalizer.js';
 import {
   isWebhookAsyncMode,
@@ -8,9 +9,23 @@ import {
   maybeApplyWebhookGeocode,
 } from './webhookPipeline.js';
 import { processIntegrationOrder } from './processor.js';
+import { verifyWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from './webhookSignature.js';
 
 export function createIntegrationsRouter(db) {
   const router = Router();
+
+  const webhookLimiter = rateLimit({
+    windowMs: Math.max(1000, Number(process.env.WEBHOOK_RATE_WINDOW_MS || 60_000) || 60_000),
+    max: Math.max(1, Number(process.env.WEBHOOK_RATE_MAX || 200) || 200),
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      ok: false,
+      code: 'RATE_LIMIT',
+      message: 'Muitas requisicoes de webhook; aguarde e tente novamente.',
+    },
+    keyGenerator: (req) => ipKeyGenerator(req),
+  });
 
   router.get('/integrations', (_req, res) => {
     res.json(db.prepare('SELECT * FROM integrations ORDER BY id DESC').all());
@@ -23,14 +38,24 @@ export function createIntegrationsRouter(db) {
     res.status(201).json({ id: result.lastInsertRowid });
   });
 
-  router.post('/integrations/webhook/:channel', async (req, res) => {
+  router.post('/integrations/webhook/:channel', webhookLimiter, async (req, res) => {
     const channel = req.params.channel;
-    const normalized = normalizeIntegrationPayload(channel, req.body || {});
     let integration = db.prepare('SELECT * FROM integrations WHERE channel = ? LIMIT 1').get(channel);
     if (!integration) {
       const created = db.prepare('INSERT INTO integrations (name, channel, active, auto_accept) VALUES (?, ?, 1, 1)').run(channel, channel);
       integration = db.prepare('SELECT * FROM integrations WHERE id = ?').get(created.lastInsertRowid);
     }
+
+    const sig = verifyWebhookSignature(integration.webhook_secret, req.rawBody, req.headers[WEBHOOK_SIGNATURE_HEADER]);
+    if (!sig.ok) {
+      return res.status(401).json({
+        ok: false,
+        code: 'WEBHOOK_SIGNATURE_INVALID',
+        message: `Assinatura invalida ou ausente. Com webhook_secret configurado, envie o header ${WEBHOOK_SIGNATURE_HEADER}: sha256=<hex> (HMAC-SHA256 do corpo JSON bruto, 64 caracteres hex).`,
+      });
+    }
+
+    const normalized = normalizeIntegrationPayload(channel, req.body || {});
 
     if (isWebhookAsyncMode()) {
       const jobId = enqueueWebhookJob(db, { channel, integrationId: integration.id, normalized });
@@ -139,23 +164,27 @@ export function createIntegrationsRouter(db) {
     const normalized = normalizeIntegrationPayload(row.channel, rawPayload);
 
     try {
-      const processed = processIntegrationOrder(db, normalized);
+      const processed = db.transaction(() => {
+        const p = processIntegrationOrder(db, normalized);
+        db.prepare('UPDATE integration_orders_raw SET processing_status = ? WHERE id = ?').run('aprovado', row.integration_raw_id);
+        db.prepare(
+          'INSERT INTO integration_logs (integration_id, external_order_id, event, status, message) VALUES (?, ?, ?, ?, ?)'
+        ).run(
+          row.integration_id,
+          row.external_order_id,
+          'auto_accepted',
+          'ok',
+          'Pedido resolvido na review_queue'
+        );
+        db.prepare('UPDATE review_queue SET resolved_at = CURRENT_TIMESTAMP WHERE id = ?').run(reviewId);
+        return p;
+      })();
+
       await maybeApplyWebhookGeocode(db, {
         mode: 'accepted',
         orderId: processed.orderId,
         pendingGeocodeAddress: processed.pendingGeocodeAddress,
       });
-      db.prepare('UPDATE integration_orders_raw SET processing_status = ? WHERE id = ?').run('aprovado', row.integration_raw_id);
-      db.prepare(
-        'INSERT INTO integration_logs (integration_id, external_order_id, event, status, message) VALUES (?, ?, ?, ?, ?)'
-      ).run(
-        row.integration_id,
-        row.external_order_id,
-        'auto_accepted',
-        'ok',
-        'Pedido resolvido na review_queue'
-      );
-      db.prepare('UPDATE review_queue SET resolved_at = CURRENT_TIMESTAMP WHERE id = ?').run(reviewId);
       res.json({ ok: true, orderId: processed.orderId });
     } catch (e) {
       const duplicate = String(e.message || '').includes('UNIQUE');

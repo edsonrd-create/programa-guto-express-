@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { OrderCreateBodySchema, validationErrorResponse } from '../../validation/httpSchemas.js';
 
 export function createOrdersRouter(db) {
   const router = Router();
@@ -16,7 +17,9 @@ export function createOrdersRouter(db) {
   });
 
   router.post('/orders', (req, res) => {
-    const { client_id = null, total = 0, delivery_fee = 0 } = req.body;
+    const parsed = OrderCreateBodySchema.safeParse(req.body ?? {});
+    if (!parsed.success) return res.status(400).json(validationErrorResponse(parsed.error));
+    const { client_id, total, delivery_fee } = parsed.data;
     const result = db.prepare('INSERT INTO orders (client_id, total_amount, subtotal, delivery_fee) VALUES (?, ?, ?, ?)')
       .run(client_id, total, total, delivery_fee);
     db.prepare('INSERT INTO order_status_history (order_id, status, description) VALUES (?, ?, ?)')
