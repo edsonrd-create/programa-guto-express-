@@ -13,6 +13,11 @@ export default function DashboardPage() {
   const motoboysFila = queue.length;
 
   const ai = data?.ai;
+  const store = data?.store;
+  const stRules = store?.rules;
+  const outbox = data?.integrationOutbox?.partnerSyncJobs;
+  const outboxPending =
+    outbox != null ? Number(outbox.pending || 0) + Number(outbox.processing || 0) : 0;
 
   return (
     <div style={{ padding: 24 }} className="fade-up">
@@ -28,6 +33,63 @@ export default function DashboardPage() {
         </div>
       </div>
       {error && <div className="err">{error}</div>}
+
+      {outbox != null && (
+        <div
+          className="glass-card"
+          style={{
+            padding: '12px 18px',
+            marginBottom: 14,
+            fontSize: 13,
+            color: '#94a3b8',
+            border: '1px solid rgba(59,130,246,0.25)',
+          }}
+        >
+          <span style={{ fontWeight: 800, color: '#93c5fd' }}>Outbox parceiro</span>
+          <span style={{ marginLeft: 10 }}>pendente ({outboxPending})</span>
+          {' · '}
+          ok {outbox.done ?? 0}
+          {' · '}
+          falha {outbox.failed ?? 0}
+          <span style={{ marginLeft: 8, opacity: 0.85 }}>
+            — fila SQLite + worker opcional <code style={{ fontSize: 11 }}>INTEGRATION_SYNC_WORKER=1</code>
+          </span>
+        </div>
+      )}
+
+      {store && (
+        <div
+          className="glass-card"
+          style={{
+            padding: '14px 18px',
+            marginBottom: 18,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 14,
+            alignItems: 'center',
+            border: '1px solid rgba(148,163,184,0.2)',
+          }}
+        >
+          <span style={{ fontWeight: 800, color: '#e2e8f0' }}>Loja (horário)</span>
+          <span style={{ color: store.openNow ? '#86efac' : '#fca5a5', fontWeight: 800 }}>
+            {store.openNow ? 'Aberta agora' : 'Fechada agora'}
+          </span>
+          {store.window && (
+            <span style={{ color: '#94a3b8', fontSize: 13 }}>
+              Janela: {store.window.open}–{store.window.close}
+              {store.window.overnight ? ' (vira o dia)' : ''}
+            </span>
+          )}
+          {stRules && (
+            <span style={{ color: '#94a3b8', fontSize: 13 }}>
+              Bloqueio de novos pedidos: <b style={{ color: stRules.orders_blocked_now ? '#fca5a5' : '#86efac' }}>{stRules.orders_blocked_now ? 'ativo' : 'inativo'}</b>
+              {' · '}
+              Modo: {stRules.mode === 'ia' ? 'assistido (IA)' : 'manual'}
+              {stRules.sync_integrations ? ' · sync integrações ligado' : ''}
+            </span>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 18, marginBottom: 24 }}>
         {[

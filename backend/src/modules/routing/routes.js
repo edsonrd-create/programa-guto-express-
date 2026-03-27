@@ -3,6 +3,7 @@ import { STORE } from '../../config/storeGeo.js';
 import { bearingDeg, classifyDirection, haversineKm } from './geo.js';
 import { planRoutes } from './engine.js';
 import { enrichPlanWithGoogle, geocodeAddress } from './googleRoutes.js';
+import { getGoogleMapsServerKey, isGoogleMapsServerConfigured } from '../../config/googleMapsServer.js';
 
 function parseNum(v, def) {
   if (v === undefined || v === null || v === '') return def;
@@ -10,16 +11,23 @@ function parseNum(v, def) {
   return Number.isFinite(n) ? n : def;
 }
 
+function readRoutingGoogleMapsAuto(db) {
+  const row = db.prepare(`SELECT value FROM settings WHERE key = ?`).get('routing_google_maps_auto');
+  return String(row?.value ?? '').toLowerCase() !== 'false';
+}
+
 export function createRoutingRouter(db) {
   const router = Router();
 
-  const googleMapsKeyConfigured = Boolean((process.env.GOOGLE_MAPS_API_KEY || '').trim());
+  const googleMapsKeyConfigured = isGoogleMapsServerConfigured();
 
   router.get('/routing/config', (_req, res) => {
+    const routingGoogleMapsAuto = readRoutingGoogleMapsAuto(db);
     res.json({
       store: STORE,
+      routingGoogleMapsAuto,
       google: {
-        routesApiEnrichment: googleMapsKeyConfigured,
+        routesApiEnrichment: googleMapsKeyConfigured && routingGoogleMapsAuto,
         geocodeProxy: googleMapsKeyConfigured,
         trafficAwareRoutes: String(process.env.GOOGLE_ROUTES_TRAFFIC || '').trim() === '1',
       },
@@ -56,9 +64,12 @@ export function createRoutingRouter(db) {
   });
 
   router.get('/routing/geocode', async (req, res) => {
-    const key = (process.env.GOOGLE_MAPS_API_KEY || '').trim();
+    const key = getGoogleMapsServerKey();
     if (!key) {
-      return res.status(503).json({ ok: false, message: 'GOOGLE_MAPS_API_KEY nao configurada no servidor' });
+      return res.status(503).json({
+        ok: false,
+        message: 'Chave Google nao configurada no servidor',
+      });
     }
     const q = String(req.query.q || req.query.address || '').trim();
     if (q.length < 3) {
@@ -101,7 +112,11 @@ export function createRoutingRouter(db) {
       .all();
 
     let result = planRoutes(orders, drivers, deliveries, queue, cfg);
-    const skipGoogle = body.skipGoogleRoutes === true || body.skipGoogleRoutes === '1';
+    const systemAllowsGoogle = readRoutingGoogleMapsAuto(db);
+    const skipGoogle =
+      body.skipGoogleRoutes === true ||
+      body.skipGoogleRoutes === '1' ||
+      !systemAllowsGoogle;
     if (!skipGoogle && googleMapsKeyConfigured) {
       try {
         result = await enrichPlanWithGoogle(result);

@@ -18,6 +18,28 @@ export default function AutopilotPage() {
 
       {data && (
         <div className="glass-card" style={{ padding: 22 }}>
+          {data.config && (
+            <div
+              style={{
+                marginBottom: 14,
+                padding: 12,
+                borderRadius: 12,
+                background: 'rgba(2,6,23,0.55)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                color: '#94a3b8',
+                fontSize: 13,
+              }}
+            >
+              Configuração ativa (SQLite <code>/settings</code>): piloto{' '}
+              <b style={{ color: data.config.enabled ? '#86efac' : '#fca5a5' }}>
+                {data.config.enabled ? 'automático' : 'manual / desligado'}
+              </b>
+              {' · '}
+              auto-atribuição {data.config.allowAutoAssign ? 'sim' : 'não'}
+              {' · '}
+              auto-despacho {data.config.allowAutoDispatch ? 'sim' : 'não'}
+            </div>
+          )}
           <div style={{ marginBottom: 12 }}>
             Modo: <b style={{ color: '#93c5fd' }}>{data.mode}</b>
           </div>

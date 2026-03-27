@@ -10,6 +10,7 @@ import {
 } from './webhookPipeline.js';
 import { processIntegrationOrder } from './processor.js';
 import { verifyWebhookSignature, WEBHOOK_SIGNATURE_HEADER } from './webhookSignature.js';
+import { countPartnerSyncJobsByStatus } from './sync/outbox.js';
 
 export function createIntegrationsRouter(db) {
   const router = Router();
@@ -44,6 +45,14 @@ export function createIntegrationsRouter(db) {
     if (!integration) {
       const created = db.prepare('INSERT INTO integrations (name, channel, active, auto_accept) VALUES (?, ?, 1, 1)').run(channel, channel);
       integration = db.prepare('SELECT * FROM integrations WHERE id = ?').get(created.lastInsertRowid);
+    }
+
+    if (!integration.active) {
+      return res.status(403).json({
+        ok: false,
+        code: 'INTEGRATION_DISABLED',
+        message: 'Integracao inativa no painel. Ative o canal em Integracoes antes de receber webhooks.',
+      });
     }
 
     const sig = verifyWebhookSignature(integration.webhook_secret, req.rawBody, req.headers[WEBHOOK_SIGNATURE_HEADER]);
@@ -93,10 +102,38 @@ export function createIntegrationsRouter(db) {
   /** Fila assíncrona de webhooks (`WEBHOOK_ASYNC=1`). */
   router.get('/integrations/webhook-jobs', (req, res) => {
     const limit = Math.min(Math.max(Number(req.query.limit) || 80, 1), 200);
-    const rows = db
-      .prepare('SELECT * FROM integration_webhook_jobs ORDER BY id DESC LIMIT ?')
-      .all(limit);
+    const rows = db.prepare('SELECT * FROM integration_webhook_jobs ORDER BY id DESC LIMIT ?').all(limit);
     res.json(rows);
+  });
+
+  /**
+   * Outbox de sync com parceiro (`INTEGRATION_SYNC_WORKER=1` processa em background).
+   * GET conta por status; lista ordenada por id DESC.
+   */
+  router.get('/integrations/sync-jobs', (req, res) => {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 80, 1), 200);
+    const rows = db.prepare('SELECT * FROM integration_partner_sync_jobs ORDER BY id DESC LIMIT ?').all(limit);
+    res.json({ counts: countPartnerSyncJobsByStatus(db), jobs: rows });
+  });
+
+  router.post('/integrations/sync-jobs/:id/retry', (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id) || id < 1) return res.status(400).json({ ok: false, message: 'id invalido' });
+    const row = db.prepare('SELECT * FROM integration_partner_sync_jobs WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ ok: false, message: 'Job nao encontrado' });
+    if (row.status !== 'failed') {
+      return res.status(409).json({ ok: false, message: 'Apenas jobs failed podem ser reenfileirados' });
+    }
+    db.prepare(
+      `UPDATE integration_partner_sync_jobs
+          SET status = 'pending',
+              last_error = NULL,
+              processed_at = NULL,
+              processing_since = NULL,
+              attempts = 0
+        WHERE id = ?`,
+    ).run(id);
+    res.json({ ok: true, id });
   });
 
   router.patch('/integrations/:id', (req, res) => {

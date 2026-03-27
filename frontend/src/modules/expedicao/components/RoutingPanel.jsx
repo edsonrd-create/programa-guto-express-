@@ -1,14 +1,14 @@
 import React from 'react';
 import { routingService } from '../../../services/routing.service.js';
 import { RoutingRouteMap } from './RoutingRouteMap.jsx';
-
-const mapsJsKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '').trim();
+import { useMapsBrowserKey } from '../../../hooks/useMapsBrowserKey.js';
 
 function errMsg(e) {
   return e?.body?.message || e?.message || 'Erro';
 }
 
 export function RoutingPanel() {
+  const mapsJsKey = useMapsBrowserKey();
   const [config, setConfig] = React.useState(null);
   const [plan, setPlan] = React.useState(null);
   const [err, setErr] = React.useState('');

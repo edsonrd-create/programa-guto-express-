@@ -1,0 +1,25 @@
+﻿# Backend image (API + WS)
+FROM node:22-bookworm-slim
+
+WORKDIR /app
+
+# deps
+COPY backend/package*.json ./backend/
+RUN cd backend && npm ci
+
+# app code
+COPY backend ./backend
+
+# data dir for sqlite
+RUN mkdir -p /app/data
+
+ENV NODE_ENV=production
+ENV PORT=3210
+ENV HOST=0.0.0.0
+
+# IMPORTANT: run from /app/backend so database.sqlite stays under /app/data via env
+WORKDIR /app/backend
+
+# Force sqlite file into /app/data (works because db.js uses relative file name)
+# We run with cwd=/app/data by starting node from that directory.
+CMD ["sh", "-lc", "cd /app/data && node /app/backend/src/server.js"]

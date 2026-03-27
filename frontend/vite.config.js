@@ -7,6 +7,7 @@ const proxyTarget = (process.env.VITE_PROXY_API || 'http://127.0.0.1:3210').repl
 const proxyPaths = [
   '/auth',
   '/menu',
+  '/settings',
   '/clients',
   '/drivers',
   '/orders',

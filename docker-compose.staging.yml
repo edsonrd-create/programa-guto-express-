@@ -1,0 +1,42 @@
+﻿# Staging deploy (Docker Compose)
+# - Nginx serve frontend (static)
+# - Backend Node serve API + WS
+# - SQLite persisted in volume
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.backend
+    environment:
+      NODE_ENV: production
+      PORT: "3210"
+      HOST: "0.0.0.0"
+      TRUST_PROXY: "1"
+      # Opcional hardening (defina em staging/prod):
+      # METRICS_TOKEN: "..."
+      # OPS_WS_TOKEN: "..."
+      # WEBHOOK_ASYNC: "1"
+      # WEBHOOK_GEOCODE_DELIVERY: "1"
+      # GOOGLE_MAPS_API_KEY: "..."
+    volumes:
+      - guto_sqlite:/app/data
+    restart: unless-stopped
+    expose:
+      - "3210"
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+      args:
+        # Em staging, a UI chama a API pelo mesmo domínio em /api (Nginx proxy)
+        VITE_API_URL: ""
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  guto_sqlite:

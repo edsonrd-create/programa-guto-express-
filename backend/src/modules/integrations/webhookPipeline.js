@@ -1,14 +1,18 @@
 import { normalizeIntegrationPayload } from './normalizer.js';
 import { processIntegrationOrder } from './processor.js';
 import { geocodeAndPersistOrderDelivery } from '../routing/googleRoutes.js';
+import { getGoogleMapsServerKey } from '../../config/googleMapsServer.js';
+import { getHoursConfig } from '../settings/hours.js';
+import { getClosedMessage, shouldBlockOrdersNow } from '../settings/hoursEnforcer.js';
+import { enqueueStoreClosedPartnerSync } from './sync/outbox.js';
 
-/** Se `WEBHOOK_GEOCODE_DELIVERY=1` e houver `GOOGLE_MAPS_API_KEY`, preenche lat/lng após criar o pedido. */
+/** Se `WEBHOOK_GEOCODE_DELIVERY=1` e houver chave Google no servidor, preenche lat/lng após criar o pedido. */
 export async function maybeApplyWebhookGeocode(db, result) {
   if ((process.env.WEBHOOK_GEOCODE_DELIVERY || '').trim() !== '1') return result;
   if (result.mode !== 'accepted' || !result.orderId || !result.pendingGeocodeAddress) return result;
 
-  const key = (process.env.GOOGLE_MAPS_API_KEY || '').trim();
-  if (!key) return { ...result, geocode: { skipped: true, reason: 'GOOGLE_MAPS_API_KEY ausente' } };
+  const key = getGoogleMapsServerKey();
+  if (!key) return { ...result, geocode: { skipped: true, reason: 'Chave Google ausente no servidor' } };
 
   try {
     const geo = await geocodeAndPersistOrderDelivery(db, result.orderId, result.pendingGeocodeAddress, key);
@@ -152,6 +156,36 @@ export function runWebhookOrderTransaction(db, integration, normalized) {
       `INSERT INTO integration_logs (integration_id, external_order_id, event, status, message)
        VALUES (?, ?, 'webhook_received', 'ok', 'Pedido recebido via webhook')`
     ).run(integration.id, externalOrderId);
+
+    const block = shouldBlockOrdersNow(db, new Date());
+    if (block.block) {
+      const hoursCfg = getHoursConfig(db);
+      const syncOn = hoursCfg.rules.sync_integrations;
+      const logEvent = syncOn ? 'store_closed_pending_sync' : 'store_closed_block';
+      const reviewReason = syncOn
+        ? 'Fora do horário (bloqueio automático; sync com integrações ativo)'
+        : 'Fora do horário de funcionamento (bloqueio automático)';
+      db.prepare(`UPDATE integration_orders_raw SET processing_status = ? WHERE id = ?`).run('revisao', orderRow.lastInsertRowid);
+      db.prepare(`INSERT INTO review_queue (integration_raw_id, reason) VALUES (?, ?)`)
+        .run(orderRow.lastInsertRowid, reviewReason);
+      const closedMsg = getClosedMessage(db);
+      const logIns = db
+        .prepare(
+          `INSERT INTO integration_logs (integration_id, external_order_id, event, status, message)
+           VALUES (?, ?, ?, 'warning', ?)`,
+        )
+        .run(integration.id, externalOrderId, logEvent, closedMsg);
+      if (syncOn) {
+        enqueueStoreClosedPartnerSync(db, {
+          integrationId: integration.id,
+          channel,
+          externalOrderId,
+          closedMessage: closedMsg,
+          sourceIntegrationLogId: Number(logIns.lastInsertRowid),
+        });
+      }
+      return { mode: 'review', externalOrderId };
+    }
 
     if (!items.length || !customerName || total <= 0) {
       db.prepare(`UPDATE integration_orders_raw SET processing_status = ? WHERE id = ?`).run('revisao', orderRow.lastInsertRowid);

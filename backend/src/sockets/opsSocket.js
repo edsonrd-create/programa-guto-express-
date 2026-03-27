@@ -1,6 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { timingSafeEqualString } from '../lib/timingSafe.js';
 import { buildOperationalSnapshot } from '../modules/ops/snapshotBuilder.js';
+import { getOpsWsBroadcastMs } from '../modules/settings/runtimeSettings.js';
 
 function tokenFromUpgradeUrl(url) {
   const raw = url || '';
@@ -24,7 +25,6 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
   }
 
   const path = options.path || '/ws/ops';
-  const broadcastMs = Math.max(2000, Number(process.env.OPS_WS_BROADCAST_MS || 4000) || 4000);
   const opsWsToken = (process.env.OPS_WS_TOKEN || '').trim();
 
   /** @type {import('ws').ServerOptions} */
@@ -44,12 +44,12 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
     console.error('[ws/ops]', err?.code || err?.message || err);
   });
 
-  let intervalId = null;
+  let broadcastTimer = null;
 
   function stopBroadcast() {
-    if (intervalId) {
-      clearInterval(intervalId);
-      intervalId = null;
+    if (broadcastTimer) {
+      clearTimeout(broadcastTimer);
+      broadcastTimer = null;
     }
   }
 
@@ -63,17 +63,29 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
       snap = buildOperationalSnapshot(db);
     } catch (e) {
       console.error('[ws/ops] snapshot', e);
+      scheduleNextBroadcast();
       return;
     }
     const msg = JSON.stringify({ type: 'ops_snapshot', payload: snap });
     for (const client of wss.clients) {
       if (client.readyState === 1) client.send(msg);
     }
+    scheduleNextBroadcast();
+  }
+
+  function scheduleNextBroadcast() {
+    if (wss.clients.size === 0) {
+      stopBroadcast();
+      return;
+    }
+    const ms = getOpsWsBroadcastMs(db);
+    stopBroadcast();
+    broadcastTimer = setTimeout(broadcast, ms);
   }
 
   function ensureBroadcast() {
-    if (intervalId || wss.clients.size === 0) return;
-    intervalId = setInterval(broadcast, broadcastMs);
+    if (broadcastTimer || wss.clients.size === 0) return;
+    scheduleNextBroadcast();
   }
 
   wss.on('connection', (ws) => {
@@ -90,8 +102,9 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
     });
   });
 
+  const initialMs = getOpsWsBroadcastMs(db);
   console.log(
-    `[ws/ops] WebSocket em ws(s)://<host>:<porta>${path} (broadcast ${broadcastMs}ms${
+    `[ws/ops] WebSocket em ws(s)://<host>:<porta>${path} (broadcast ~${initialMs}ms via settings/env; re-lido a cada ciclo${
       opsWsToken ? '; token obrigatorio (?token=)' : ''
     })`,
   );

@@ -3,7 +3,7 @@ import { apiGet } from '../services/apiClient.js';
 import { useOpsSnapshot } from '../contexts/OpsSnapshotContext.jsx';
 
 export function StatusBar() {
-  const { transport } = useOpsSnapshot();
+  const { transport, data } = useOpsSnapshot();
   const [ok, setOk] = React.useState(null);
   const [at, setAt] = React.useState(null);
 
@@ -27,6 +27,30 @@ export function StatusBar() {
     ok === null ? 'Verificando API…' : ok ? 'API online' : 'API offline (suba o backend :3210)';
   const color = ok === null ? '#94a3b8' : ok ? '#34d399' : '#f87171';
 
+  const st = data?.store;
+  const storeLine =
+    st &&
+    (() => {
+      const open = Boolean(st.openNow);
+      const r = st.rules;
+      const block = r?.orders_blocked_now === true;
+      const mode = r?.mode === 'ia' ? 'assistido' : 'manual';
+      return (
+        <span style={{ opacity: 0.9, whiteSpace: 'nowrap' }} title="Definido em Configurações → Horário">
+          Loja:{' '}
+          <b style={{ color: open ? '#86efac' : '#fca5a5' }}>{open ? 'aberta' : 'fechada'}</b>
+          {r != null && (
+            <>
+              {' · '}
+              bloqueio: <b style={{ color: block ? '#fca5a5' : '#94a3b8' }}>{block ? 'sim' : 'não'}</b>
+              {' · '}
+              modo: {mode}
+            </>
+          )}
+        </span>
+      );
+    })();
+
   return (
     <div
       style={{
@@ -35,6 +59,7 @@ export function StatusBar() {
         color: '#94a3b8',
         display: 'flex',
         alignItems: 'center',
+        flexWrap: 'wrap',
         gap: 12,
         borderBottom: '1px solid rgba(255,255,255,0.06)',
         background: 'rgba(7, 17, 31, 0.6)',
@@ -42,8 +67,12 @@ export function StatusBar() {
     >
       <span style={{ color, fontWeight: 700 }}>●</span>
       <span>{label}</span>
-      <span style={{ opacity: 0.75, color: transport === 'ws' ? '#6ee7b7' : '#94a3b8' }}>
-        Snapshot: {transport === 'ws' ? 'WebSocket' : 'HTTP'}
+      {storeLine}
+      <span style={{ opacity: 0.92, flexShrink: 0 }}>
+        {storeLine ? ' · ' : ''}
+        <span style={{ color: transport === 'ws' ? '#6ee7b7' : '#94a3b8' }}>
+          Snapshot: {transport === 'ws' ? 'WebSocket' : 'HTTP'}
+        </span>
       </span>
       {at && <span style={{ opacity: 0.7 }}>Último ping: {at.toLocaleTimeString('pt-BR')}</span>}
       <button type="button" className="btn-ghost" onClick={ping} style={{ marginLeft: 'auto' }}>

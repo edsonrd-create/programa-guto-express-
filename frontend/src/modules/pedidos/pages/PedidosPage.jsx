@@ -1,6 +1,16 @@
 import React from 'react';
 import { ordersService } from '../../../services/orders.service.js';
 import { routingService } from '../../../services/routing.service.js';
+import { searchAddressByText } from '../../../lib/googleMapsPlaces.js';
+import { useMapsBrowserKey } from '../../../hooks/useMapsBrowserKey.js';
+import { RoutingRouteMap } from '../../expedicao/components/RoutingRouteMap.jsx';
+
+/** Colombo/PR — referência IBGE (sede municipal), alinhada ao backend storeGeo. */
+const FALLBACK_STORE_MAP = {
+  label: 'Loja — Colombo/PR (referência)',
+  lat: -25.3648956,
+  lng: -49.1771888,
+};
 
 const STATUS_OPTIONS = ['novo', 'em_preparo', 'pronto', 'aguardando_motoboy', 'despachado', 'entregue'];
 
@@ -9,6 +19,7 @@ function errMsg(e) {
 }
 
 export default function PedidosPage() {
+  const mapsBrowserKey = useMapsBrowserKey();
   const [orders, setOrders] = React.useState([]);
   const [detail, setDetail] = React.useState(null);
   const [statusPick, setStatusPick] = React.useState('novo');
@@ -19,6 +30,8 @@ export default function PedidosPage() {
   const [delNeigh, setDelNeigh] = React.useState('');
   const [delAddr, setDelAddr] = React.useState('');
   const [geoBusy, setGeoBusy] = React.useState(false);
+  const [placesBusy, setPlacesBusy] = React.useState(false);
+  const [mapStore, setMapStore] = React.useState(null);
 
   const load = React.useCallback(async () => {
     setErr('');
@@ -34,6 +47,26 @@ export default function PedidosPage() {
     const id = setInterval(load, 12000);
     return () => clearInterval(id);
   }, [load]);
+
+  React.useEffect(() => {
+    if (!detail) {
+      setMapStore(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const cfg = await routingService.getConfig();
+        if (!cancelled && cfg?.store?.lat != null && cfg?.store?.lng != null) setMapStore(cfg.store);
+        else if (!cancelled) setMapStore(FALLBACK_STORE_MAP);
+      } catch {
+        if (!cancelled) setMapStore(FALLBACK_STORE_MAP);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [detail?.id]);
 
   async function openDetail(id) {
     setErr('');
@@ -113,6 +146,34 @@ export default function PedidosPage() {
     setGeoBusy(false);
   }
 
+  async function geocodeFromPlaces() {
+    const q = delAddr.trim();
+    if (q.length < 5) {
+      setErr('Digite um endereço para buscar no mapa (Places).');
+      return;
+    }
+    if (!mapsBrowserKey) {
+      setErr('Configure a chave do mapa em Configurações ou VITE_GOOGLE_MAPS_API_KEY.');
+      return;
+    }
+    setPlacesBusy(true);
+    setErr('');
+    try {
+      const hit = await searchAddressByText(q);
+      if (!hit || hit.lat == null || hit.lng == null) {
+        setErr('Places não retornou localização para esse texto.');
+        return;
+      }
+      setDelLat(String(hit.lat));
+      setDelLng(String(hit.lng));
+      if (hit.neighborhood) setDelNeigh(hit.neighborhood);
+      if (hit.formattedAddress) setDelAddr(hit.formattedAddress);
+    } catch (e) {
+      setErr(errMsg(e));
+    }
+    setPlacesBusy(false);
+  }
+
   return (
     <div style={{ padding: 24 }} className="fade-up">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -133,6 +194,7 @@ export default function PedidosPage() {
               <tr>
                 <th>ID</th>
                 <th>Cliente</th>
+                <th>Entrega</th>
                 <th>Status</th>
                 <th>Total</th>
                 <th>Criado</th>
@@ -149,6 +211,12 @@ export default function PedidosPage() {
                   <td>
                     {o.client_name || '—'}
                     {o.client_phone && <div style={{ fontSize: 11, color: '#94a3b8' }}>{o.client_phone}</div>}
+                  </td>
+                  <td style={{ fontSize: 12, color: '#94a3b8' }}>
+                    {o.delivery_neighborhood || '—'}
+                    {o.estimated_delivery_minutes != null && (
+                      <div style={{ color: '#93c5fd' }}>~{o.estimated_delivery_minutes} min</div>
+                    )}
                   </td>
                   <td>{o.status}</td>
                   <td>R$ {Number(o.total_amount || 0).toFixed(2)}</td>
@@ -171,8 +239,36 @@ export default function PedidosPage() {
             <div style={{ color: '#94a3b8', fontSize: 13, marginBottom: 12 }}>
               Status atual: <b style={{ color: '#e2e8f0' }}>{detail.status}</b>
               <br />
-              Total R$ {Number(detail.total_amount || 0).toFixed(2)}
+              Subtotal R$ {Number(detail.subtotal ?? 0).toFixed(2)} · Taxa R${' '}
+              {Number(detail.delivery_fee ?? 0).toFixed(2)} · Total R$ {Number(detail.total_amount || 0).toFixed(2)}
+              {detail.delivery_neighborhood && (
+                <>
+                  <br />
+                  Bairro: <b style={{ color: '#e2e8f0' }}>{detail.delivery_neighborhood}</b>
+                  {detail.estimated_delivery_minutes != null && (
+                    <span style={{ color: '#93c5fd' }}> · Prazo estimado ~{detail.estimated_delivery_minutes} min</span>
+                  )}
+                </>
+              )}
             </div>
+            {detail.min_order_hint && !detail.min_order_hint.satisfied && (
+              <div
+                style={{
+                  marginBottom: 12,
+                  padding: 10,
+                  borderRadius: 10,
+                  border: '1px solid rgba(251,191,36,0.5)',
+                  background: 'rgba(120,53,15,0.25)',
+                  fontSize: 13,
+                  color: '#fcd34d',
+                }}
+              >
+                Abaixo do pedido mínimo do bairro <b>{detail.min_order_hint.zone_name}</b> (mín. R${' '}
+                {Number(detail.min_order_hint.min_order_amount).toFixed(2)}). Faltam R${' '}
+                {Number(detail.min_order_hint.gap).toFixed(2)} em itens. Não é possível ir para &quot;em preparo&quot; ou
+                &quot;pronto&quot; até atingir o mínimo.
+              </div>
+            )}
 
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Itens</div>
             <ul style={{ margin: '0 0 12px 0', paddingLeft: 18, color: '#cbd5e1', fontSize: 13 }}>
@@ -195,8 +291,11 @@ export default function PedidosPage() {
 
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Destino (roteirização)</div>
             <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
-              Use o endereço e <b style={{ color: '#94a3b8' }}>Preencher coordenadas</b> se o backend tiver{' '}
-              <code style={{ color: '#cbd5e1' }}>GOOGLE_MAPS_API_KEY</code> (Geocoding API).
+              <b style={{ color: '#94a3b8' }}>Servidor</b>: geocoding via API se houver chave no backend.{' '}
+              <b style={{ color: '#94a3b8' }}>Navegador</b>: busca textual com Places API (nova) e{' '}
+              <code style={{ color: '#cbd5e1' }}>Configurações → Mapa</code> ou{' '}
+              <code style={{ color: '#cbd5e1' }}>VITE_GOOGLE_MAPS_API_KEY</code>; com App Check, use também as
+              variáveis <code style={{ color: '#cbd5e1' }}>VITE_GOOGLE_MAPS_APP_CHECK</code> / Firebase.
             </div>
             <div style={{ display: 'grid', gap: 8, marginBottom: 12 }}>
               <input
@@ -212,7 +311,21 @@ export default function PedidosPage() {
                 onClick={geocodeFromAddress}
                 style={{ width: '100%' }}
               >
-                {geoBusy ? 'Geocodificando…' : 'Preencher coordenadas pelo endereço'}
+                {geoBusy ? 'Geocodificando…' : 'Preencher pelo servidor (Geocoding)'}
+              </button>
+              <button
+                type="button"
+                className="btn-ghost"
+                disabled={busy || placesBusy || !mapsBrowserKey}
+                onClick={geocodeFromPlaces}
+                style={{ width: '100%' }}
+                title={
+                  mapsBrowserKey
+                    ? 'Place.searchByText no mapa (Places API New)'
+                    : 'Configure a chave em Configurações'
+                }
+              >
+                {placesBusy ? 'Buscando no mapa…' : 'Buscar com Places (mapa)'}
               </button>
               <input className="select" placeholder="Latitude" value={delLat} onChange={(e) => setDelLat(e.target.value)} />
               <input className="select" placeholder="Longitude" value={delLng} onChange={(e) => setDelLng(e.target.value)} />
@@ -221,6 +334,35 @@ export default function PedidosPage() {
                 Salvar destino
               </button>
             </div>
+
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>Mapa da entrega</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
+              Preenche com latitude/longitude válidas e confira a chave Maps em <strong>Configurações</strong> (ou{' '}
+              <code style={{ color: '#cbd5e1' }}>VITE_GOOGLE_MAPS_API_KEY</code>).
+            </div>
+            {(() => {
+              const la = Number(delLat);
+              const ln = Number(delLng);
+              const ok = Number.isFinite(la) && Number.isFinite(ln);
+              if (!ok) {
+                return (
+                  <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 12 }}>
+                    Informe lat/lng (ou use geocodificação acima) para o mapa aparecer.
+                  </div>
+                );
+              }
+              const st = mapStore || FALLBACK_STORE_MAP;
+              return (
+                <div style={{ marginBottom: 16 }}>
+                  <RoutingRouteMap
+                    apiKey={mapsBrowserKey}
+                    store={st}
+                    stops={[{ orderId: detail.id, lat: la, lng: ln }]}
+                    height={280}
+                  />
+                </div>
+              );
+            })()}
 
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Alterar status</div>
             <select className="select" value={statusPick} onChange={(e) => setStatusPick(e.target.value)} style={{ marginBottom: 8 }}>

@@ -9,6 +9,7 @@ export default function AtendimentoPage() {
   const [qty, setQty] = React.useState(1);
   const [unitPrice, setUnitPrice] = React.useState(49.9);
   const [deliveryFee, setDeliveryFee] = React.useState(0);
+  const [neighborhood, setNeighborhood] = React.useState('');
   const [msg, setMsg] = React.useState('');
   const [err, setErr] = React.useState('');
   const [busy, setBusy] = React.useState(false);
@@ -34,7 +35,12 @@ export default function AtendimentoPage() {
         quantity: Number(qty) || 1,
         unit_price: Number(unitPrice) || 0,
       });
-      setMsg(`Pedido #${order.id} criado para cliente #${c.id}.`);
+      const eta = order.estimated_delivery_minutes != null ? ` · Prazo estimado ~${order.estimated_delivery_minutes} min` : '';
+      const feeNote =
+        order.delivery_zone != null
+          ? ` · Taxa zona ${order.delivery_zone.name}: R$ ${Number(order.delivery_fee || 0).toFixed(2)}`
+          : '';
+      setMsg(`Pedido #${order.id} criado para cliente #${c.id}${feeNote}${eta}.`);
       setItemName('Pizza');
       setQty(1);
     } catch (e) {
@@ -64,7 +70,13 @@ export default function AtendimentoPage() {
           <input className="input" placeholder="Descrição do item" value={itemName} onChange={(e) => setItemName(e.target.value)} />
           <input className="input" type="number" min={1} placeholder="Qtd" value={qty} onChange={(e) => setQty(e.target.value)} />
           <input className="input" type="number" step="0.01" placeholder="Preço unit." value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
-          <input className="input" type="number" step="0.01" placeholder="Taxa entrega" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)} />
+          <input
+            className="input"
+            placeholder="Bairro (opcional — taxa automática se cadastrado)"
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
+          />
+          <input className="input" type="number" step="0.01" placeholder="Taxa entrega (se não houver zona)" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)} />
           <button type="submit" className="btn" disabled={busy}>
             Criar pedido
           </button>

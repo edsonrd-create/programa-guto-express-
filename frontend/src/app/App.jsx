@@ -8,8 +8,10 @@ import AtendimentoPage from '../modules/atendimento/pages/AtendimentoPage.jsx';
 import PedidosPage from '../modules/pedidos/pages/PedidosPage.jsx';
 import KdsPage from '../modules/kds/pages/KdsPage.jsx';
 import ExpedicaoPage from '../modules/expedicao/pages/ExpedicaoPage.jsx';
+import RoteirizacaoPage from '../modules/roteirizacao/pages/RoteirizacaoPage.jsx';
 import MotoboysPage from '../modules/motoboys/pages/MotoboysPage.jsx';
 import IntegracoesPage from '../modules/integracoes/pages/IntegracoesPage.jsx';
+import ConfiguracoesPage from '../modules/configuracoes/pages/ConfiguracoesPage.jsx';
 
 export default function App() {
   return (
@@ -24,8 +26,10 @@ export default function App() {
           <Route path="/pedidos" element={<PedidosPage />} />
           <Route path="/kds" element={<KdsPage />} />
           <Route path="/expedicao" element={<ExpedicaoPage />} />
+          <Route path="/roteirizacao" element={<RoteirizacaoPage />} />
           <Route path="/motoboys" element={<MotoboysPage />} />
           <Route path="/integracoes" element={<IntegracoesPage />} />
+          <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

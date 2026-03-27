@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './loadEnv.js';
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
@@ -13,10 +13,13 @@ import { createCustomersRouter } from './modules/customers/routes.js';
 import { createDriversRouter } from './modules/drivers/routes.js';
 import { createAuthRouter } from './modules/auth/routes.js';
 import { createMenuRouter } from './modules/menu/routes.js';
+import { createSettingsRouter } from './modules/settings/routes.js';
+import { getAutopilotRuntimeSettings } from './modules/settings/runtimeSettings.js';
 import { decideAutopilotActions } from './modules/ai/autopilot.js';
 import { buildOperationalSnapshot } from './modules/ops/snapshotBuilder.js';
 import { createChatRouter } from './modules/ai/chatRouter.js';
 import { isWebhookAsyncMode, startWebhookWorker } from './modules/integrations/webhookPipeline.js';
+import { isIntegrationSyncWorkerEnabled, startIntegrationSyncWorker } from './modules/integrations/sync/worker.js';
 import { attachOpsSocketHub } from './sockets/opsSocket.js';
 import { timingSafeEqualString } from './lib/timingSafe.js';
 
@@ -72,6 +75,7 @@ export function buildServerApp() {
 
   app.use('/auth', createAuthRouter());
   app.use('/menu', createMenuRouter());
+  app.use('/settings', createSettingsRouter(db));
   app.use('/clients', createCustomersRouter(db));
   app.use('/drivers', createDriversRouter(db));
 
@@ -85,13 +89,17 @@ export function buildServerApp() {
 
   app.get('/ai/autopilot', (_req, res) => {
     const snap = buildOperationalSnapshot(db);
-    res.json(
-      decideAutopilotActions({
-        orders: snap.orders,
-        queue: snap.driverQueue.map((q) => ({ driver_id: q.driver_id })),
-        settings: { enabled: true, allowAutoAssign: true, allowAutoDispatch: false }
-      })
-    );
+    const ap = getAutopilotRuntimeSettings(db);
+    const body = decideAutopilotActions({
+      orders: snap.orders,
+      queue: snap.driverQueue.map((q) => ({ driver_id: q.driver_id })),
+      settings: {
+        enabled: ap.enabled,
+        allowAutoAssign: ap.allowAutoAssign,
+        allowAutoDispatch: ap.allowAutoDispatch,
+      },
+    });
+    res.json({ ...body, config: ap, configSource: 'settings' });
   });
 
   // ChatGPT (OpenAI)
@@ -119,6 +127,12 @@ if (isWebhookAsyncMode()) {
   console.log('[webhook] WEBHOOK_ASYNC ativo — worker processando fila SQLite');
 }
 
+let stopIntegrationSyncWorker = null;
+if (isIntegrationSyncWorkerEnabled()) {
+  stopIntegrationSyncWorker = startIntegrationSyncWorker(db);
+  console.log('[integration-sync] INTEGRATION_SYNC_WORKER ativo — outbox integration_partner_sync_jobs');
+}
+
 const opsSocket = attachOpsSocketHub(httpServer, db);
 
 const server = httpServer;
@@ -141,6 +155,7 @@ if (HOST) {
 
 const shutdown = () => {
   if (stopWebhookWorker) stopWebhookWorker();
+  if (stopIntegrationSyncWorker) stopIntegrationSyncWorker();
   opsSocket.close();
   server.close(() => process.exit(0));
 };

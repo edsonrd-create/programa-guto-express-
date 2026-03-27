@@ -99,7 +99,14 @@ export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
     };
 
     ws.onopen = () => {
-      if (cancelled) return;
+      if (cancelled) {
+        try {
+          if (ws.readyState === WebSocket.OPEN) ws.close();
+        } catch {
+          /* */
+        }
+        return;
+      }
       setTransport('ws');
       clearPoll();
       clearBackup();
@@ -109,7 +116,7 @@ export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
     };
 
     ws.onclose = () => {
-      useHttpOnly();
+      if (!cancelled) useHttpOnly();
     };
 
     const connectTimeout = setTimeout(() => {
@@ -129,7 +136,13 @@ export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
       clearTimeout(connectTimeout);
       clearPoll();
       clearBackup();
-      if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      if (!ws) return;
+      ws.onmessage = null;
+      ws.onopen = null;
+      ws.onclose = null;
+      /* Só fechar se já estiver OPEN. Em React Strict Mode o cleanup roda com socket ainda em
+       * CONNECTING — chamar close() aqui gera "WebSocket is closed before the connection is established". */
+      if (ws.readyState === WebSocket.OPEN) {
         try {
           ws.close();
         } catch {

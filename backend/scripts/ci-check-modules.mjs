@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CI: syntax-check de módulos críticos (além de server.js em test:smoke).
  */
 import { spawnSync } from 'node:child_process';
@@ -12,10 +12,19 @@ const files = [
   'src/modules/integrations/webhookSignature.js',
   'src/modules/integrations/processor.js',
   'src/modules/integrations/normalizer.js',
+  'src/modules/integrations/sync/outbox.js',
+  'src/modules/integrations/sync/deliver.js',
+  'src/modules/integrations/sync/channelAdapters.js',
+  'src/modules/integrations/sync/worker.js',
   'src/modules/orders/routes.js',
   'src/modules/customers/routes.js',
   'src/sockets/opsSocket.js',
   'src/validation/httpSchemas.js',
+  'src/modules/settings/runtimeSettings.js',
+  'src/modules/settings/hoursEnforcer.js',
+  'src/modules/settings/deliveryZonesCore.js',
+  'src/modules/settings/deliveryZoneRoutes.js',
+  'src/modules/ops/snapshotBuilder.js',
 ];
 
 let failed = false;

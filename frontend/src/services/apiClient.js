@@ -10,7 +10,11 @@ export function getApiPublicBase() {
   if (import.meta.env.DEV && (envRaw === undefined || String(envRaw).trim() === '')) {
     return '';
   }
-  const raw = (envRaw || 'http://127.0.0.1:3210').trim();
+  // Em staging com nginx, normalmente a UI e API ficam na mesma origem, com API exposta em /api.
+  if (!import.meta.env.DEV && (envRaw === undefined || String(envRaw).trim() === '')) {
+    return '/api';
+  }
+  const raw = String(envRaw || 'http://127.0.0.1:3210').trim();
   return raw.replace(/\/$/, '');
 }
 
@@ -21,6 +25,12 @@ export function getWsOpsUrl(wsPath = '/ws/ops') {
   const q = secret ? `?token=${encodeURIComponent(secret)}` : '';
 
   const base = getApiPublicBase();
+  if (base === '/api' && typeof window !== 'undefined') {
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsPathOnly = pathOnly.startsWith('/ws/') ? pathOnly : `/ws${pathOnly}`;
+    return `${proto}//${window.location.host}${wsPathOnly}${q}`;
+  }
+
   if (!base && typeof window !== 'undefined') {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${proto}//${window.location.host}${pathOnly}${q}`;

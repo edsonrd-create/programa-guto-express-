@@ -28,6 +28,7 @@ export default function CommandCenterPage() {
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Bairro / prazo</th>
                 <th>Status</th>
                 <th>Total</th>
                 <th>Criado</th>
@@ -37,6 +38,12 @@ export default function CommandCenterPage() {
               {orders.map((o) => (
                 <tr key={o.id}>
                   <td style={{ fontWeight: 700, color: '#93c5fd' }}>#{o.id}</td>
+                  <td style={{ fontSize: 12, color: '#94a3b8' }}>
+                    {o.delivery_neighborhood || '—'}
+                    {o.estimated_delivery_minutes != null && (
+                      <div style={{ color: '#93c5fd' }}>~{o.estimated_delivery_minutes} min</div>
+                    )}
+                  </td>
                   <td>{o.status}</td>
                   <td>R$ {Number(o.total_amount || 0).toFixed(2)}</td>
                   <td style={{ color: '#94a3b8', fontSize: 12 }}>{o.created_at}</td>

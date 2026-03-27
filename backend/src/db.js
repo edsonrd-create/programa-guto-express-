@@ -123,6 +123,55 @@ CREATE TABLE IF NOT EXISTS kds_events (
 );
 `);
 
+// Configurações persistentes (staging/prod) — sem segredos por padrão.
+db.exec(`
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
+// Horário de funcionamento (operações)
+db.exec(`
+CREATE TABLE IF NOT EXISTS store_week_hours (
+  iso_dow INTEGER NOT NULL PRIMARY KEY, -- 1=Mon ... 7=Sun
+  active INTEGER NOT NULL DEFAULT 0,
+  open_time TEXT,  -- HH:MM
+  close_time TEXT, -- HH:MM (pode passar da meia-noite)
+  break_label TEXT
+);
+
+CREATE TABLE IF NOT EXISTS store_date_exceptions (
+  date TEXT NOT NULL PRIMARY KEY, -- YYYY-MM-DD
+  mode TEXT NOT NULL DEFAULT 'open', -- open|closed
+  open_time TEXT,
+  close_time TEXT,
+  break_label TEXT,
+  note TEXT,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS store_holidays (
+  date TEXT NOT NULL PRIMARY KEY, -- YYYY-MM-DD
+  name TEXT,
+  mode TEXT NOT NULL DEFAULT 'closed', -- closed|open
+  open_time TEXT,
+  close_time TEXT,
+  note TEXT,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS store_hours_audit (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  actor TEXT,
+  source TEXT NOT NULL DEFAULT 'panel',
+  reason TEXT,
+  payload_json TEXT NOT NULL,
+  changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
 // Campos adicionais esperados pelo painel (roteirizacao / destino)
 function hasColumn(table, column) {
   const rows = db.prepare(`PRAGMA table_info(${table})`).all();
@@ -157,3 +206,61 @@ CREATE TABLE IF NOT EXISTS integration_webhook_jobs (
 CREATE INDEX IF NOT EXISTS idx_integration_webhook_jobs_pending
   ON integration_webhook_jobs (status, id);
 `);
+
+/** Outbox: sincronização assíncrona com parceiros (ex.: aviso de loja fechada após bloqueio por horário). */
+db.exec(`
+CREATE TABLE IF NOT EXISTS integration_partner_sync_jobs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  integration_id INTEGER NOT NULL,
+  channel TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL UNIQUE,
+  payload_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  last_error TEXT,
+  result_json TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  processed_at TEXT,
+  FOREIGN KEY (integration_id) REFERENCES integrations(id)
+);
+CREATE INDEX IF NOT EXISTS idx_integration_partner_sync_pending
+  ON integration_partner_sync_jobs (status, id);
+`);
+
+addColumnIfMissing('integration_partner_sync_jobs', 'processing_since', 'processing_since TEXT');
+
+/** Taxa / prazo por bairro (delivery zones). */
+db.exec(`
+CREATE TABLE IF NOT EXISTS delivery_zones (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  name_key TEXT NOT NULL UNIQUE,
+  delivery_fee REAL NOT NULL DEFAULT 0,
+  avg_minutes INTEGER NOT NULL DEFAULT 45,
+  min_order_amount REAL NOT NULL DEFAULT 0,
+  active INTEGER NOT NULL DEFAULT 1,
+  priority TEXT NOT NULL DEFAULT 'medium',
+  notes TEXT NOT NULL DEFAULT '',
+  mode TEXT NOT NULL DEFAULT 'manual',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_delivery_zones_active_key ON delivery_zones (active, name_key);
+`);
+
+db.exec(`
+CREATE TABLE IF NOT EXISTS delivery_zone_audit (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  zone_id INTEGER NOT NULL,
+  actor TEXT,
+  source TEXT NOT NULL DEFAULT 'panel',
+  reason TEXT,
+  payload_json TEXT NOT NULL,
+  changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (zone_id) REFERENCES delivery_zones(id)
+);
+`);
+
+addColumnIfMissing('orders', 'estimated_delivery_minutes', 'estimated_delivery_minutes INTEGER');
+addColumnIfMissing('orders', 'delivery_zone_id', 'delivery_zone_id INTEGER');

@@ -8,6 +8,8 @@ export const NAV_MODULES = [
   { to: '/pedidos', label: 'Pedidos' },
   { to: '/kds', label: 'KDS' },
   { to: '/expedicao', label: 'Expedição' },
+  { to: '/roteirizacao', label: 'Roteirização' },
   { to: '/motoboys', label: 'Motoboys' },
   { to: '/integracoes', label: 'Integrações' },
+  { to: '/configuracoes', label: 'Configurações' },
 ];

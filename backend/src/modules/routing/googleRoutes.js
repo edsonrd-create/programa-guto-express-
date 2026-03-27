@@ -3,6 +3,8 @@
  * Requer chave com "Routes API" ativa no Google Cloud.
  */
 
+import { getGoogleMapsServerKey } from '../../config/googleMapsServer.js';
+
 const ROUTES_URL = 'https://routes.googleapis.com/directions/v2:computeRoutes';
 
 /** Limite de waypoints intermediários na Routes API v2 (computeRoutes). */
@@ -92,7 +94,7 @@ export async function computeRoundTripRoute(apiKey, store, stopsOrdered, opts = 
  * @param {object} plan - saída de `planRoutes`
  */
 export async function enrichPlanWithGoogle(plan) {
-  const key = (process.env.GOOGLE_MAPS_API_KEY || '').trim();
+  const key = getGoogleMapsServerKey();
   if (!key) return plan;
 
   const trafficAware = String(process.env.GOOGLE_ROUTES_TRAFFIC || '').trim() === '1';
@@ -180,7 +182,7 @@ export async function geocodeAddress(apiKey, address) {
  * @param {import('better-sqlite3').Database} db
  */
 export async function geocodeAndPersistOrderDelivery(db, orderId, address, apiKey) {
-  const key = (apiKey || (process.env.GOOGLE_MAPS_API_KEY || '')).trim();
+  const key = (apiKey || getGoogleMapsServerKey()).trim();
   if (!key || !String(address || '').trim()) {
     return { skipped: true, reason: 'no_key_or_address' };
   }
