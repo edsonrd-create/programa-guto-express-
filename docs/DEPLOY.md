@@ -44,8 +44,11 @@ npm run ci
 
 ### 3. Backend (Node)
 
-- Serviço **systemd** (Linux) ou **NSSM**/serviço Windows apontando para `node backend/src/server.js` com `cwd` em `backend/`.
+- **Linux:** exemplo **systemd** em `docs/systemd/guto-backend.service.example` (ajuste caminhos e `User`).
+- **Windows:** guia **NSSM** em `docs/NSSM-WINDOWS.md`.
+- Em qualquer SO: `cwd` na pasta `backend/`, comando `node src/server.js` (ou `npm start`).
 - Garantir que o processo tem permissão de escrita na pasta do SQLite.
+- `GET /health` devolve também `version` (package do backend) e `node` (versão do runtime) para confirmar deploy.
 
 ### 4. Frontend (estático)
 

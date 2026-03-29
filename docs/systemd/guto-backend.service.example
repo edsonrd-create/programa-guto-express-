@@ -1,0 +1,24 @@
+# Copiar para /etc/systemd/system/guto-backend.service
+# Ajuste User, WorkingDirectory e EnvironmentFile.
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable guto-backend
+# sudo systemctl start guto-backend
+# sudo journalctl -u guto-backend -f
+
+[Unit]
+Description=Guto Express API (Node)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/guto-express/backend
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/guto-express/backend/.env
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

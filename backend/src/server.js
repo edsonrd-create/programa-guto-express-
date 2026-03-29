@@ -23,8 +23,11 @@ import { isIntegrationSyncWorkerEnabled, startIntegrationSyncWorker } from './mo
 import { attachOpsSocketHub } from './sockets/opsSocket.js';
 import { timingSafeEqualString } from './lib/timingSafe.js';
 import { createAdminApiKeyMiddleware } from './middleware/adminApiKey.js';
+import { getBackendVersion } from './versionInfo.js';
 
 initBusinessMetrics(db);
+
+const BACKEND_VERSION = getBackendVersion();
 
 /** Número de proxies na frente do Node (ex.: 1 com nginx). Necessário para `req.ip` e rate limit por IP. */
 function trustProxyHopsFromEnv() {
@@ -68,7 +71,14 @@ export function buildServerApp() {
   );
   app.use(metricsMiddleware);
 
-  app.get('/health', (_req, res) => res.json({ ok: true, service: 'guto-express-backend' }));
+  app.get('/health', (_req, res) =>
+    res.json({
+      ok: true,
+      service: 'guto-express-backend',
+      version: BACKEND_VERSION,
+      node: process.version,
+    }),
+  );
 
   app.get('/metrics', metricsTokenGate, (req, res, next) => {
     handleMetrics(req, res).catch(next);

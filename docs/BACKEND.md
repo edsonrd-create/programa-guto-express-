@@ -36,7 +36,7 @@ Recria canais padrão (iFood, Neemo, …) se ainda não existirem. Ver `docs/INT
 
 | Área | Exemplos |
 |------|-----------|
-| Saúde | `GET /health`, `GET /metrics` |
+| Saúde | `GET /health` (JSON: `ok`, `service`, `version`, `node`), `GET /metrics` |
 | Clientes | `GET/POST /clients` |
 | Motoristas | `GET/POST /drivers`, `GET /drivers/queue`, `POST /drivers/:id/check-in` |
 | Pedidos | `/orders`, `/kds`, `/dispatch` |
