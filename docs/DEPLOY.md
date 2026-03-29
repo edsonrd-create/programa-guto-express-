@@ -70,7 +70,7 @@ cd frontend && npm ci && npm run build
 ### 6. CORS
 
 - Com front e API no **mesmo domínio** (ex.: `/api`), CORS costuma ser desnecessário no browser.
-- Com domínios diferentes, restringir `cors()` no Express a origens conhecidas (evitar `*` em produção).
+- Com domínios diferentes (ou para validar `Origin` no WebSocket `/ws/ops`), defina no backend `CORS_ORIGINS` com a origem exata do painel, por exemplo: `https://pdvgutoexpress.com.br` e, se aplicável, `https://www.pdvgutoexpress.com.br` (várias origens separadas por vírgula). Ver `backend/src/lib/corsConfig.js`.
 
 ---
 

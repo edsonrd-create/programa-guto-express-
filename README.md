@@ -24,7 +24,7 @@ npm run dev
 
 Abra `http://127.0.0.1:3210/health`
 
-**Testes reais / produção:** defina `ADMIN_API_KEY` no `backend/.env` e a **mesma** chave em `VITE_ADMIN_API_KEY` no `frontend/.env` (o painel envia automaticamente em cada pedido HTTP e no WebSocket `/ws/ops`). Sem chave em desenvolvimento a API continua aberta; em `NODE_ENV=production` a chave é obrigatória. Com `NODE_ENV=production`, defina também `CORS_ORIGINS` com a(s) origem(ns) do painel (ex.: `https://app.seudominio.com`) — várias separadas por vírgula; sem isso, pedidos de browser noutro host ficam sem CORS e o `/ws/ops` só valida origem quando a lista existe. Para gerar uma chave: `npm run gen:admin-key` na raiz. Backup do SQLite: `npm run backup:db` ou `BACKUP-DB.cmd` (Windows); detalhes em `docs/DEPLOY.md`.
+**Testes reais / produção:** defina `ADMIN_API_KEY` no `backend/.env` e a **mesma** chave em `VITE_ADMIN_API_KEY` no `frontend/.env` (o painel envia automaticamente em cada pedido HTTP e no WebSocket `/ws/ops`). Sem chave em desenvolvimento a API continua aberta; em `NODE_ENV=production` a chave é obrigatória. Com `NODE_ENV=production`, defina também `CORS_ORIGINS` com a(s) origem(ns) do painel (ex.: `https://pdvgutoexpress.com.br` e `https://www.pdvgutoexpress.com.br` se usar `www`) — várias separadas por vírgula; sem isso, pedidos de browser noutro host ficam sem CORS e o `/ws/ops` só valida origem quando a lista existe. Para gerar uma chave: `npm run gen:admin-key` na raiz. Backup do SQLite: `npm run backup:db` ou `BACKUP-DB.cmd` (Windows); detalhes em `docs/DEPLOY.md`.
 
 ## Frontend
 
