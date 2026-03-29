@@ -34,7 +34,7 @@ npm install
 npm run dev
 ```
 
-Abra `http://127.0.0.1:5173/`
+Abra **`http://127.0.0.1:5173/`** (Vite — é aqui que está o painel). A porta `3210` é só a API (`/health`), não mostra a interface React.
 
 Em dev, pode **omitir** `VITE_API_URL`: o Vite faz **proxy** para a API em `3210` (ou `VITE_PROXY_API`). Para build de produção, defina `VITE_API_URL` com a URL pública da API. **WebSocket** `ws://…/ws/ops` (proxy em dev); `VITE_OPS_WS=0` desliga o WS.
 

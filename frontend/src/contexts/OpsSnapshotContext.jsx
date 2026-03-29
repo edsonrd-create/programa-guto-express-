@@ -11,12 +11,14 @@ const OpsSnapshotContext = createContext(null);
 export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
+  const [authRequired, setAuthRequired] = useState(false);
   const [loading, setLoading] = useState(true);
   const [transport, setTransport] = useState('http');
 
   const applySnap = useCallback((snap) => {
     setData(snap);
     setError('');
+    setAuthRequired(false);
     setLoading(false);
   }, []);
 
@@ -26,7 +28,13 @@ export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
       const snap = await fetchOperationalSnapshot();
       applySnap(snap);
     } catch (e) {
-      setError(e?.message || 'Falha ao carregar /ops/snapshot');
+      const unauthorized = e?.status === 401 || e?.body?.code === 'UNAUTHORIZED';
+      setAuthRequired(unauthorized);
+      setError(
+        unauthorized
+          ? 'API recusou o pedido (401). O backend tem ADMIN_API_KEY: crie ou edite frontend/.env com VITE_ADMIN_API_KEY igual a essa chave e reinicie o Vite (pare e rode npm run dev de novo).'
+          : e?.message || 'Falha ao carregar /ops/snapshot',
+      );
       setLoading(false);
     }
   }, [applySnap]);
@@ -153,8 +161,8 @@ export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
   }, [httpPollMs, reload, applySnap]);
 
   const value = useMemo(
-    () => ({ data, error, loading, reload, transport }),
-    [data, error, loading, reload, transport]
+    () => ({ data, error, authRequired, loading, reload, transport }),
+    [data, error, authRequired, loading, reload, transport],
   );
 
   return <OpsSnapshotContext.Provider value={value}>{children}</OpsSnapshotContext.Provider>;

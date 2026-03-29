@@ -2,13 +2,22 @@
 setlocal
 cd /d "%~dp0"
 
-echo Abrindo servidor (API + painel se existir apps\admin-web\dist)...
-echo Se o painel nao aparecer, rode antes na raiz: npm run build:admin
 echo.
-start "Guto V53 - API + Painel" cmd /k "%~dp0SUBIR-BACKEND.cmd"
+echo === Guto Express - Painel + API ===
+echo.
+echo A pagina do PAINEL e o Vite na porta 5173.
+echo A API Node fica na porta 3210 (JSON /health) — NAO e a interface web.
+echo.
+echo URL correta no navegador: http://127.0.0.1:5173/
+echo.
+echo Abrindo duas janelas: backend e frontend...
+echo.
 
-echo.
-echo Abra: http://127.0.0.1:3210/
-echo Hot reload ^(Vite^): SUBIR-PAINEL.cmd  ^(porta 5173^)
+start "Guto - API 3210" cmd /k "%~dp0SUBIR-BACKEND.cmd"
+timeout /t 2 /nobreak >nul
+start "Guto - Painel 5173" cmd /k "%~dp0SUBIR-PAINEL.cmd"
+
+echo Aguarde "ready" no Vite e abra: http://127.0.0.1:5173/
+echo Alternativa na raiz do projeto: npm install ^&^& npm run dev
 echo.
 pause
