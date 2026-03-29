@@ -35,3 +35,13 @@ Copie as duas linhas geradas para `backend/.env` e `frontend/.env`, guarde e rei
 4. abra **`http://127.0.0.1:5173/`**
 
 Na raiz: `npm install` (instala `concurrently`) e `npm run dev` sobe **backend + frontend** ao mesmo tempo.
+
+## Backup da base (antes de testes destrutivos ou deploy)
+
+Com o `database.sqlite` já criado pelo backend:
+
+```bash
+npm run backup:db
+```
+
+No Windows pode usar `BACKUP-DB.cmd` na raiz. Ver `docs/DEPLOY.md` para agendar cópias em produção.

@@ -1,4 +1,4 @@
-﻿# Integração contínua: backend (npm test + check de módulos) e build do frontend.
+# Integração contínua: backend (npm test + check de módulos) e build do frontend.
 
 name: CI
 
@@ -38,6 +38,17 @@ jobs:
 
       - name: Tests & syntax (CI)
         run: npm run test:ci
+
+      - name: Smoke — API responde em /health
+        if: matrix.node == '22'
+        run: |
+          set -e
+          PORT=3999 NODE_ENV=development node src/server.js &
+          GUTO_PID=$!
+          cleanup() { kill $GUTO_PID 2>/dev/null || true; }
+          trap cleanup EXIT
+          sleep 6
+          curl -fsS "http://127.0.0.1:3999/health" | grep -q '"ok":true'
 
   frontend:
     name: Frontend build
