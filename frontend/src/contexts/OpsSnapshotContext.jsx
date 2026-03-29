@@ -28,7 +28,9 @@ export function OpsSnapshotProvider({ children, httpPollMs = 10000 }) {
       const snap = await fetchOperationalSnapshot();
       applySnap(snap);
     } catch (e) {
-      const unauthorized = e?.status === 401 || e?.body?.code === 'UNAUTHORIZED';
+      const status = typeof e?.status === 'number' ? e.status : null;
+      const code = e?.body && typeof e.body === 'object' && e.body !== null ? e.body.code : null;
+      const unauthorized = status === 401 || code === 'UNAUTHORIZED';
       setAuthRequired(unauthorized);
       setError(
         unauthorized

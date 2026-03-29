@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { OpsSnapshotProvider } from '../contexts/OpsSnapshotContext.jsx';
 import MainLayout from '../layouts/MainLayout.jsx';
 import DashboardPage from '../modules/dashboard/pages/DashboardPage.jsx';
 import CommandCenterPage from '../modules/command-center/pages/CommandCenterPage.jsx';
@@ -17,8 +18,9 @@ import DevTestPage from '../modules/dev-test/pages/DevTestPage.jsx';
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<MainLayout />}>
+      <OpsSnapshotProvider httpPollMs={10000}>
+        <Routes>
+          <Route element={<MainLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/command-center" element={<CommandCenterPage />} />
           <Route path="/live-ops" element={<LiveOpsPage />} />
@@ -34,7 +36,8 @@ export default function App() {
           <Route path="/dev-test" element={<DevTestPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
-      </Routes>
+        </Routes>
+      </OpsSnapshotProvider>
     </BrowserRouter>
   );
 }
