@@ -56,12 +56,13 @@ cd frontend && npm ci && npm run build
 - `VITE_API_URL` = URL **pública** da API (ex.: `https://api.seudominio.com` ou `https://seudominio.com/api` conforme o proxy).
 - `VITE_ADMIN_API_KEY` = **igual** a `ADMIN_API_KEY` do servidor (valor injetado no build; não muda em runtime).
 
-### 5. Proxy reverso (nginx exemplo)
+### 5. Proxy reverso (nginx)
 
 - Servir `frontend/dist` como ficheiros estáticos ou outro host.
 - Proxy `/api` ou host dedicado para o Node na porta interna.
 - WebSocket: `proxy_http_version 1.1`, `Upgrade`, `Connection "upgrade"` para o path `/ws/ops` (ou o path que o painel usar).
 - HTTPS com certificado válido (Let's Encrypt).
+- Exemplo comentado: **`docs/nginx-example.conf`** (SPA + `/api` + WebSocket). Com tudo no mesmo host, use build com `VITE_API_URL=/api`.
 
 ### 6. CORS
 
