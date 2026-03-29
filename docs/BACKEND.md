@@ -16,6 +16,10 @@ Com `ADMIN_API_KEY` definida, **todas** as rotas administrativas exigem `Authori
 
 O WebSocket `/ws/ops` aceita `?token=` com `OPS_WS_TOKEN` ou, se ausente, o mesmo valor de `ADMIN_API_KEY`.
 
+### CORS (`CORS_ORIGINS`)
+
+Em `NODE_ENV=production`, defina `CORS_ORIGINS` (ou `CORS_ORIGIN`) com uma ou mais origens separadas por vírgula (ex.: `https://painel.exemplo.com,https://staging.exemplo.com`). Sem lista, o servidor avisa no log e não envia `Access-Control-Allow-Origin` para pedidos com `Origin` de outro host. Com lista definida, o handshake do `/ws/ops` também rejeita `Origin` fora da lista (pedidos sem `Origin` continuam permitidos após validar o token).
+
 ### Despacho e fila
 
 - `POST /dispatch/:orderId/assign-next-driver` — atribui conforme modo em `settings` (`dispatch_queue_mode`: `fifo` ou `nearest`).

@@ -1,7 +1,6 @@
 import './loadEnv.js';
 import http from 'http';
 import express from 'express';
-import cors from 'cors';
 import { db } from './db.js';
 import { initBusinessMetrics, metricsMiddleware, handleMetrics } from './metrics.js';
 import { createOrdersRouter } from './modules/orders/routes.js';
@@ -24,6 +23,7 @@ import { attachOpsSocketHub } from './sockets/opsSocket.js';
 import { timingSafeEqualString } from './lib/timingSafe.js';
 import { createAdminApiKeyMiddleware } from './middleware/adminApiKey.js';
 import { getBackendVersion } from './versionInfo.js';
+import { createCorsMiddleware } from './lib/corsConfig.js';
 
 initBusinessMetrics(db);
 
@@ -60,7 +60,7 @@ export function buildServerApp() {
   const trustHops = trustProxyHopsFromEnv();
   if (trustHops != null) app.set('trust proxy', trustHops);
 
-  app.use(cors());
+  app.use(createCorsMiddleware());
   app.use(
     express.json({
       limit: '512kb',

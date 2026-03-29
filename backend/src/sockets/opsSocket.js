@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { timingSafeEqualString } from '../lib/timingSafe.js';
+import { getCorsAllowedOrigins } from '../lib/corsConfig.js';
 import { buildOperationalSnapshot } from '../modules/ops/snapshotBuilder.js';
 import { getOpsWsBroadcastMs } from '../modules/settings/runtimeSettings.js';
 
@@ -30,14 +31,23 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
   /** Se OPS_WS_TOKEN nao existir mas ADMIN_API_KEY existir, o WS exige o mesmo token (?token=). */
   const wsSecret = opsWsToken || adminKey;
 
+  const prod = process.env.NODE_ENV === 'production';
+  const corsAllow = getCorsAllowedOrigins();
+  const wsOriginOk =
+    prod && corsAllow.length > 0
+      ? (origin) => !origin || corsAllow.includes(origin)
+      : () => true;
+
   /** @type {import('ws').ServerOptions} */
   const wsOpts = { server: httpServer, path };
   if (wsSecret) {
     wsOpts.verifyClient = (info, cb) => {
       const got = tokenFromUpgradeUrl(info.req.url);
-      const ok = got.length > 0 && timingSafeEqualString(got, wsSecret);
-      if (ok) cb(true);
-      else cb(false, 401, 'Unauthorized');
+      const okToken = got.length > 0 && timingSafeEqualString(got, wsSecret);
+      if (!okToken) return cb(false, 401, 'Unauthorized');
+      const origin = info.origin || '';
+      if (!wsOriginOk(origin)) return cb(false, 403, 'Forbidden');
+      cb(true);
     };
   }
 

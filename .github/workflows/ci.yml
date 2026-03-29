@@ -50,6 +50,22 @@ jobs:
           sleep 6
           curl -fsS "http://127.0.0.1:3999/health" | grep -q '"ok":true'
 
+      - name: Smoke — CORS em produção (whitelist)
+        if: matrix.node == '22'
+        run: |
+          set -e
+          PORT=4001 NODE_ENV=production ADMIN_API_KEY=ci-cors-smoke \
+            CORS_ORIGINS=http://127.0.0.1:5173,https://painel.exemplo \
+            node src/server.js &
+          GUTO_PID=$!
+          cleanup() { kill $GUTO_PID 2>/dev/null || true; }
+          trap cleanup EXIT
+          sleep 6
+          H=$(curl -sI -H "Origin: http://127.0.0.1:5173" "http://127.0.0.1:4001/health")
+          echo "$H" | grep -qi "access-control-allow-origin: http://127.0.0.1:5173"
+          H2=$(curl -sI -H "Origin: https://evil.example" "http://127.0.0.1:4001/health")
+          echo "$H2" | grep -qi "access-control-allow-origin: https://evil.example" && exit 1 || true
+
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest

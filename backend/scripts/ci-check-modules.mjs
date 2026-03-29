@@ -7,6 +7,7 @@ import path from 'node:path';
 
 const root = path.join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const files = [
+  'src/lib/corsConfig.js',
   'src/modules/integrations/routes.js',
   'src/modules/integrations/webhookPipeline.js',
   'src/modules/integrations/webhookSignature.js',
