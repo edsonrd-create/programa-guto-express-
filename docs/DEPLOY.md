@@ -126,11 +126,14 @@ cd backend && SMOKE_BASE_URL="https://pdvgutoexpress.com.br/api" npm run test:ht
 2. **Expedição / despacho:** abrir **Expedição** (ou equivalente no menu), confirmar que o pedido aparece e que é possível avançar estado / atribuir motoboy conforme o vosso fluxo.
 3. **Tempo real:** confirmar que o **WebSocket** `/ws/ops` liga (sem erros permanentes na rede); com o mesmo host e `VITE_API_URL=/api`, o browser usa `wss://` no mesmo domínio.
 
+**Como testar `/health` no browser:** abre **um separador novo** e cola o URL completo (ex.: `https://pdvgutoexpress.com.br/api/health`). Não uses **iframe** nem **abra o link** a partir da página de erro do Chrome (`chrome-error://…`): o browser bloqueia esse carregamento entre origens. A API envia `X-Frame-Options: DENY` — o JSON da API não é feito para ser embutido em frames. Em alternativa usa `curl` no terminal ou a tela **Teste rápido** do painel (pedido via `fetch`, não iframe).
+
 ### 4. Se algo falhar
 
 | Sintoma | Onde olhar |
 |--------|------------|
 | `/health` 404 | Path do proxy (`/api` vs raiz); `proxy_pass` no nginx. |
+| Consola: *Unsafe attempt to load URL … /api/health from frame … chrome-error* | Abrir `/health` num separador direto ou `curl`; corrigir primeiro falha de DNS/SSL/site em baixo se a página principal não carregar. |
 | Painel em branco ou API 401 | `VITE_ADMIN_API_KEY` no **build** igual a `ADMIN_API_KEY`; voltar a fazer `npm run build` e publicar `dist`. |
 | CORS ou WS recusado | `CORS_ORIGINS` com origem **exata** (com/sem `www`, `https`); nginx a enviar `Upgrade` para `/ws/ops`. |
 | Versão antiga em `/health` | Processo Node antigo a correr; reiniciar serviço (systemd/NSSM) após deploy. |
