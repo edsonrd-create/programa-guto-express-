@@ -82,6 +82,61 @@ cd frontend && npm ci && npm run build
 
 ---
 
+## Validação pós-deploy (manual)
+
+Use o domínio real do painel (ex.: **https://pdvgutoexpress.com.br**). Anote a **versão esperada** do backend: campo `version` em `backend/package.json` do commit que deployou.
+
+### 1. API — `GET /health`
+
+Consoante o proxy:
+
+| Cenário | URL típica |
+|--------|------------|
+| Node exposto na raiz do mesmo host | `https://pdvgutoexpress.com.br/health` |
+| API atrás de prefixo `/api` (recomendado no exemplo nginx) | `https://pdvgutoexpress.com.br/api/health` |
+| API noutro subdomínio | `https://api.seudominio.com/health` |
+
+**O que verificar:** JSON com `"ok": true`, `"service": "guto-express-backend"`, `"version": "…"` (deve coincidir com o `package.json` deployado), `"node": "v…"`.
+
+No servidor ou no teu PC (com a API acessível):
+
+```bash
+curl -fsS "https://pdvgutoexpress.com.br/api/health"
+# ou, se a API estiver na raiz:
+# curl -fsS "https://pdvgutoexpress.com.br/health"
+```
+
+No repositório, com o backend local a correr noutra base:
+
+```bash
+cd backend && SMOKE_BASE_URL="https://pdvgutoexpress.com.br/api" npm run test:http-smoke
+```
+
+(Ajuste `SMOKE_BASE_URL` se o path for diferente. Se o endpoint só responder em HTTPS com certificado válido, o comando tem de correr numa máquina com DNS/firewall que alcance o site.)
+
+### 2. Painel — sessão operacional
+
+1. Abrir **https://pdvgutoexpress.com.br** (e **https://www.pdvgutoexpress.com.br** se usarem `www` — deve redirecionar ou servir o mesmo app).
+2. Confirmar que o build carrega sem erro de consola crítico (F12 → Consola / Rede).
+3. Com **`VITE_ADMIN_API_KEY`** igual ao `ADMIN_API_KEY` do servidor: o painel deve conseguir chamadas autenticadas (ex.: menu, pedidos). Se a chave estiver errada ou em falta, verás **401** nas rotas protegidas e o aviso de autenticação na UI (conforme implementado).
+
+### 3. Fluxo mínimo de negócio (teste)
+
+1. **Pedidos:** criar um **pedido de teste** (cliente fictício, endereço válido se a loja exigir).
+2. **Expedição / despacho:** abrir **Expedição** (ou equivalente no menu), confirmar que o pedido aparece e que é possível avançar estado / atribuir motoboy conforme o vosso fluxo.
+3. **Tempo real:** confirmar que o **WebSocket** `/ws/ops` liga (sem erros permanentes na rede); com o mesmo host e `VITE_API_URL=/api`, o browser usa `wss://` no mesmo domínio.
+
+### 4. Se algo falhar
+
+| Sintoma | Onde olhar |
+|--------|------------|
+| `/health` 404 | Path do proxy (`/api` vs raiz); `proxy_pass` no nginx. |
+| Painel em branco ou API 401 | `VITE_ADMIN_API_KEY` no **build** igual a `ADMIN_API_KEY`; voltar a fazer `npm run build` e publicar `dist`. |
+| CORS ou WS recusado | `CORS_ORIGINS` com origem **exata** (com/sem `www`, `https`); nginx a enviar `Upgrade` para `/ws/ops`. |
+| Versão antiga em `/health` | Processo Node antigo a correr; reiniciar serviço (systemd/NSSM) após deploy. |
+
+---
+
 ## PaaS
 
 - Backend precisa de **volume persistente** (SQLite).
