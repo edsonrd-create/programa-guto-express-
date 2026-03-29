@@ -4,13 +4,13 @@
 
 O workflow `.github/workflows/ci.yml` corre em push e pull request para `main`/`master`:
 
-- **backend**: `npm ci` + `npm run test:ci` + smoke `GET /health` e CORS (`scripts/smoke-http.mjs`, Node 22)
+- **backend**: `npm ci` + `npm run test:ci` + `npm run test:node` (unit + integração) + smoke `GET /health` e CORS (`scripts/smoke-http.mjs`, Node 22)
 - **frontend**: `npm ci` + `npm run build`
 
 Localmente (aprox.):
 
 ```bash
-cd backend && npm ci && npm run test:ci
+cd backend && npm ci && npm run test:ci && npm run test:node
 cd ../frontend && npm ci && npm run build
 ```
 

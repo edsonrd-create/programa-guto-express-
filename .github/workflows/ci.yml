@@ -39,6 +39,9 @@ jobs:
       - name: Tests & syntax (CI)
         run: npm run test:ci
 
+      - name: Testes Node (unit + integração)
+        run: npm run test:node
+
       - name: Smoke — API responde em /health
         if: matrix.node == '22'
         run: |

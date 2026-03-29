@@ -8,6 +8,7 @@ import path from 'node:path';
 const root = path.join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const files = [
   'scripts/smoke-http.mjs',
+  'src/modules/auth/routes.js',
   'src/lib/corsConfig.js',
   'src/lib/globalRateLimit.js',
   'src/lib/securityHeaders.js',

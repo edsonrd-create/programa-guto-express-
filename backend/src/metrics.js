@@ -1,6 +1,14 @@
 import client from 'prom-client';
+import { getBackendVersion } from './versionInfo.js';
 
 const registry = new client.Registry();
+
+const buildInfo = new client.Gauge({
+  name: 'guto_build_info',
+  help: 'Informação de build do backend (valor sempre 1).',
+  labelNames: ['version'],
+  registers: [registry],
+});
 
 client.collectDefaultMetrics({
   register: registry,
@@ -26,6 +34,12 @@ let businessMetricsInitialized = false;
 export function initBusinessMetrics(db) {
   if (businessMetricsInitialized) return;
   businessMetricsInitialized = true;
+
+  try {
+    buildInfo.set({ version: getBackendVersion() }, 1);
+  } catch {
+    buildInfo.set({ version: 'unknown' }, 1);
+  }
 
   const knownOrderStatuses = ['novo', 'em_preparo', 'pronto', 'aguardando_motoboy', 'despachado', 'entregue'];
   const knownDeliveryStatuses = ['aguardando_motoboy', 'em_entrega', 'entregue'];

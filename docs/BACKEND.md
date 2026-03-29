@@ -44,7 +44,7 @@ Recria canais padrão (iFood, Neemo, …) se ainda não existirem. Ver `docs/INT
 
 | Área | Exemplos |
 |------|-----------|
-| Saúde | `GET /health` (JSON: `ok`, `service`, `version`, `node`), `GET /metrics` |
+| Saúde | `GET /health` (JSON: `ok`, `service`, `version`, `node`), `GET /metrics` (Prometheus; inclui `guto_build_info{version}` e contadores HTTP) |
 | Clientes | `GET/POST /clients` |
 | Motoristas | `GET/POST /drivers`, `GET /drivers/queue`, `POST /drivers/:id/check-in` |
 | Pedidos | `/orders`, `/kds`, `/dispatch` |
@@ -52,7 +52,7 @@ Recria canais padrão (iFood, Neemo, …) se ainda não existirem. Ver `docs/INT
 | Tempo real | WebSocket `WS /ws/ops` (JSON `{ type: 'ops_snapshot', payload }`) |
 | IA | `GET /ai/autopilot`, `GET /ai/insights`, rotas sob `/ai` (chat) |
 | Integrações | `GET/POST /integrations`, `POST /integrations/webhook/:channel`, `GET /integrations/review-queue`, `GET /integrations/webhook-jobs` |
-| Stubs | `GET /auth/status`, `GET /menu/items` |
+| Stubs | `GET /auth/status` (JSON: `backendVersion`, `nodeEnv`, `adminApiKeyConfigured`, `scheme`, `corsWhitelistSize`, `globalRateLimitMax`, `roadmap`), `GET /menu/items` |
 | Roteirização | `GET /routing/config`, `GET /routing/classify`, `GET /routing/geocode?q=`, `POST /routing/plan` |
 
 ## Roteirização e Google Maps

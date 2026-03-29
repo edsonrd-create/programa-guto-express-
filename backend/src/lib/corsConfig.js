@@ -1,12 +1,17 @@
 import cors from 'cors';
 
-/** Lista de origens a partir de `CORS_ORIGINS` / `CORS_ORIGIN` (vírgulas). */
-export function getCorsAllowedOrigins() {
-  const raw = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || '').trim();
-  return raw
+/** Normaliza uma string de origens (vírgulas) num array. */
+export function parseCorsOriginsList(raw) {
+  return String(raw ?? '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+/** Lista de origens a partir de `CORS_ORIGINS` / `CORS_ORIGIN` (vírgulas). */
+export function getCorsAllowedOrigins() {
+  const raw = (process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || '').trim();
+  return parseCorsOriginsList(raw);
 }
 
 /**
