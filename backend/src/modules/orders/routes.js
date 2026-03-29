@@ -113,10 +113,16 @@ export function createOrdersRouter(db) {
 
   router.post('/orders/:id/items', (req, res) => {
     const orderId = Number(req.params.id);
-    const { item_name, quantity = 1, unit_price = 0, notes = null } = req.body;
+    const { item_name, quantity = 1, unit_price = 0, notes = null, meta = null } = req.body;
     const totalPrice = Number(quantity) * Number(unit_price);
-    const result = db.prepare('INSERT INTO order_items (order_id, item_name_snapshot, quantity, unit_price, total_price, notes) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(orderId, item_name, quantity, unit_price, totalPrice, notes);
+    const metaJson =
+      meta != null && typeof meta === 'object' ? JSON.stringify(meta) : null;
+    const result = db
+      .prepare(
+        `INSERT INTO order_items (order_id, item_name_snapshot, quantity, unit_price, total_price, notes, meta_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(orderId, item_name, quantity, unit_price, totalPrice, notes, metaJson);
     const sums = db.prepare('SELECT COALESCE(SUM(total_price),0) subtotal FROM order_items WHERE order_id = ?').get(orderId);
     const current = db.prepare('SELECT delivery_fee FROM orders WHERE id = ?').get(orderId);
     db.prepare('UPDATE orders SET subtotal = ?, total_amount = ? WHERE id = ?').run(

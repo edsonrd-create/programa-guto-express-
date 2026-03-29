@@ -47,7 +47,7 @@ Recria canais padrão (iFood, Neemo, …) se ainda não existirem. Ver `docs/INT
 | Saúde | `GET /health` (JSON: `ok`, `service`, `version`, `node`), `GET /metrics` (Prometheus; inclui `guto_build_info{version}` e contadores HTTP) |
 | Clientes | `GET/POST /clients` |
 | Motoristas | `GET/POST /drivers`, `GET /drivers/queue`, `POST /drivers/:id/check-in` |
-| Pedidos | `/orders`, `/kds`, `/dispatch` |
+| Pedidos | `/orders`, `/kds` (JSON enriquecido: cliente, endereço, canal, itens com sabores/adicionais/vinculados), `/dispatch` |
 | Operação | `GET /ops/snapshot` |
 | Tempo real | WebSocket `WS /ws/ops` (JSON `{ type: 'ops_snapshot', payload }`) |
 | IA | `GET /ai/autopilot`, `GET /ai/insights`, rotas sob `/ai` (chat) |

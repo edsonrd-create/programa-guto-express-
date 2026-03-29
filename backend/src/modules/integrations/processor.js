@@ -36,10 +36,57 @@ export function processIntegrationOrder(db, normalized) {
     .run(client.id, normalized.total, normalized.total, lat, lng, neigh, addr);
   const orderId = order.lastInsertRowid;
 
+  if (normalized.customer?.email) {
+    try {
+      db.prepare('UPDATE clients SET email = COALESCE(email, ?) WHERE id = ?').run(
+        String(normalized.customer.email).trim(),
+        client.id,
+      );
+    } catch {
+      /* coluna email pode falhar em DBs muito antigas sem migração */
+    }
+  }
+
   for (const item of normalized.items) {
-    const total = Number(item.quantity) * Number(item.price);
-    db.prepare('INSERT INTO order_items (order_id, item_name_snapshot, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)')
-      .run(orderId, item.name, item.quantity, item.price, total);
+    const lineTotal = Number(item.quantity) * Number(item.price);
+    const meta = {
+      description: item.description || null,
+      flavors: item.flavors || [],
+      addons: item.addons || [],
+      linkedItems: item.linkedItems || [],
+    };
+    const hasRich =
+      (meta.description && String(meta.description).trim() !== '') ||
+      (Array.isArray(meta.flavors) && meta.flavors.length > 0) ||
+      (Array.isArray(meta.addons) && meta.addons.length > 0) ||
+      (Array.isArray(meta.linkedItems) && meta.linkedItems.length > 0);
+    db
+      .prepare(
+        `INSERT INTO order_items (order_id, item_name_snapshot, quantity, unit_price, total_price, meta_json)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run(orderId, item.name, item.quantity, item.price, lineTotal, hasRich ? JSON.stringify(meta) : null);
+  }
+
+  const kdsExtras = {
+    channel: normalized.channel || normalized.sourceChannel,
+    deliveryType: normalized.deliveryType,
+    paymentMethod: normalized.paymentMethod,
+    deliveryRange: normalized.deliveryRange,
+    customer: { email: normalized.customer?.email || null },
+    address:
+      normalized.structuredAddress ||
+      (addr || neigh
+        ? {
+            full: addr || '',
+            district: neigh || '',
+          }
+        : {}),
+  };
+  try {
+    db.prepare('UPDATE orders SET kds_extras_json = ? WHERE id = ?').run(JSON.stringify(kdsExtras), orderId);
+  } catch {
+    /* kds_extras_json opcional */
   }
 
   const sums = db.prepare('SELECT COALESCE(SUM(total_price),0) AS subtotal FROM order_items WHERE order_id = ?').get(orderId);

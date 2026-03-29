@@ -1,11 +1,24 @@
 import { Router } from 'express';
+import { buildKdsOrderDto } from './kdsOrderView.js';
 
 export function createKdsRouter(db) {
   const router = Router();
 
   router.get('/kds', (_req, res) => {
-    const rows = db.prepare(`SELECT o.*, (SELECT COALESCE(SUM(quantity),0) FROM order_items oi WHERE oi.order_id = o.id) total_items FROM orders o WHERE o.status IN ('novo','em_preparo','pronto') ORDER BY id ASC`).all();
-    res.json(rows);
+    const rows = db
+      .prepare(
+        `SELECT o.*
+           FROM orders o
+          WHERE o.status IN ('novo','em_preparo','pronto')
+          ORDER BY o.id ASC`,
+      )
+      .all();
+    const out = rows.map((o) => {
+      const client = o.client_id ? db.prepare('SELECT * FROM clients WHERE id = ?').get(o.client_id) : null;
+      const items = db.prepare('SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC').all(o.id);
+      return buildKdsOrderDto(o, client, items);
+    });
+    res.json(out);
   });
 
   router.post('/kds/:orderId/start', (req, res) => {

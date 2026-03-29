@@ -1,0 +1,156 @@
+.kds-card {
+  background: #0f172a;
+  border: 1px solid #22304a;
+  border-radius: 16px;
+  padding: 18px;
+  color: #fff;
+  margin-bottom: 0;
+}
+
+.kds-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.kds-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.kds-header p {
+  margin: 4px 0 0;
+  color: #94a3b8;
+}
+
+.kds-status-pill {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #93c5fd;
+}
+
+.kds-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 18px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@media (max-width: 720px) {
+  .kds-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kds-info p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.kds-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #2a3b59;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 18px;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.item-desc {
+  color: #cbd5e1;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.item-section {
+  margin-bottom: 10px;
+}
+
+.item-section strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.item-section ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.item-section li {
+  margin-bottom: 4px;
+  color: #cbd5e1;
+}
+
+.kds-footer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #2a3b59;
+}
+
+.kds-footer p {
+  margin: 6px 0;
+  font-size: 16px;
+}
+
+.btn-preparo {
+  background: #2563eb;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-preparo:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-pronto {
+  background: #059669;
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-pronto:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.kds-ready-label {
+  color: #34d399;
+  font-weight: 600;
+  align-self: center;
+}
