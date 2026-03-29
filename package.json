@@ -11,6 +11,7 @@
     "test": "npm test --prefix backend",
     "test:routing": "npm run test:routing --prefix backend",
     "test:ci": "npm run test:ci --prefix backend",
+    "test:http-smoke": "npm run test:http-smoke --prefix backend",
     "ci": "npm run test:ci --prefix backend && npm run build --prefix frontend",
     "gen:admin-key": "node scripts/gen-admin-key.mjs",
     "backup:db": "node backend/scripts/backup-db.mjs"

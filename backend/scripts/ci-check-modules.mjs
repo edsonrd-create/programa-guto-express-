@@ -9,6 +9,7 @@ const root = path.join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const files = [
   'scripts/smoke-http.mjs',
   'src/lib/corsConfig.js',
+  'src/lib/globalRateLimit.js',
   'src/modules/integrations/routes.js',
   'src/modules/integrations/webhookPipeline.js',
   'src/modules/integrations/webhookSignature.js',

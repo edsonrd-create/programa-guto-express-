@@ -20,6 +20,8 @@ O WebSocket `/ws/ops` aceita `?token=` com `OPS_WS_TOKEN` ou, se ausente, o mesm
 
 Em `NODE_ENV=production`, defina `CORS_ORIGINS` (ou `CORS_ORIGIN`) com uma ou mais origens separadas por vírgula (ex.: painel em `https://pdvgutoexpress.com.br` — inclua `https://www.pdvgutoexpress.com.br` se o site público usar `www`). Sem lista, o servidor avisa no log e não envia `Access-Control-Allow-Origin` para pedidos com `Origin` de outro host. Com lista definida, o handshake do `/ws/ops` também rejeita `Origin` fora da lista (pedidos sem `Origin` continuam permitidos após validar o token).
 
+Limite global opcional por IP: `GLOBAL_RATE_LIMIT_MAX` (e `GLOBAL_RATE_LIMIT_WINDOW_MS`, por defeito 60s). Exclui `OPTIONS`, `/health`, `/metrics` e `POST /integrations/webhook/*`. Desativado se `GLOBAL_RATE_LIMIT_MAX` estiver vazio ou ≤ 0.
+
 ### Despacho e fila
 
 - `POST /dispatch/:orderId/assign-next-driver` — atribui conforme modo em `settings` (`dispatch_queue_mode`: `fifo` ou `nearest`).

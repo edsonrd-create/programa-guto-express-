@@ -24,6 +24,7 @@ import { timingSafeEqualString } from './lib/timingSafe.js';
 import { createAdminApiKeyMiddleware } from './middleware/adminApiKey.js';
 import { getBackendVersion } from './versionInfo.js';
 import { createCorsMiddleware } from './lib/corsConfig.js';
+import { createGlobalRateLimiter } from './lib/globalRateLimit.js';
 
 initBusinessMetrics(db);
 
@@ -70,6 +71,7 @@ export function buildServerApp() {
     })
   );
   app.use(metricsMiddleware);
+  app.use(createGlobalRateLimiter());
 
   app.get('/health', (_req, res) =>
     res.json({
