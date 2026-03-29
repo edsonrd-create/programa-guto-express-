@@ -11,7 +11,8 @@
     "test": "npm test --prefix backend",
     "test:routing": "npm run test:routing --prefix backend",
     "test:ci": "npm run test:ci --prefix backend",
-    "ci": "npm run test:ci --prefix backend && npm run build --prefix frontend"
+    "ci": "npm run test:ci --prefix backend && npm run build --prefix frontend",
+    "gen:admin-key": "node scripts/gen-admin-key.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

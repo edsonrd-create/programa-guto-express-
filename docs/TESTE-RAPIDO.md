@@ -1,5 +1,26 @@
 # Teste rápido
 
+## URLs (importante)
+
+| O quê | URL |
+|-------|-----|
+| **Painel React (interface)** | `http://127.0.0.1:5173/` |
+| API JSON | `http://127.0.0.1:3210/health` |
+
+A porta **3210** não mostra o painel — use sempre **5173** com o Vite a correr.
+
+## Chave de API (testes reais)
+
+Se o backend tiver `ADMIN_API_KEY`, o painel precisa da mesma chave em `frontend/.env` como `VITE_ADMIN_API_KEY`.
+
+Na **raiz do repositório**:
+
+```bash
+npm run gen:admin-key
+```
+
+Copie as duas linhas geradas para `backend/.env` e `frontend/.env`, guarde e reinicie backend + Vite.
+
 ## Backend
 1. `cd backend`
 2. `npm install`
@@ -11,6 +32,6 @@
 1. `cd frontend`
 2. `npm install`
 3. `npm run dev`
-4. abra `http://127.0.0.1:5173/`
+4. abra **`http://127.0.0.1:5173/`**
 
-Na raiz do repo (opcional): `npm run dev:frontend` e `npm run dev:backend` após `npm install` em cada pasta.
+Na raiz: `npm install` (instala `concurrently`) e `npm run dev` sobe **backend + frontend** ao mesmo tempo.
