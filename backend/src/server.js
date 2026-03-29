@@ -25,6 +25,7 @@ import { createAdminApiKeyMiddleware } from './middleware/adminApiKey.js';
 import { getBackendVersion } from './versionInfo.js';
 import { createCorsMiddleware } from './lib/corsConfig.js';
 import { createGlobalRateLimiter } from './lib/globalRateLimit.js';
+import { securityHeadersMiddleware } from './lib/securityHeaders.js';
 
 initBusinessMetrics(db);
 
@@ -62,6 +63,7 @@ export function buildServerApp() {
   if (trustHops != null) app.set('trust proxy', trustHops);
 
   app.use(createCorsMiddleware());
+  app.use(securityHeadersMiddleware());
   app.use(
     express.json({
       limit: '512kb',

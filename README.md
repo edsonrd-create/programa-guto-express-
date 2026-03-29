@@ -12,7 +12,7 @@ Backend Node + Express + SQLite e **painel operacional** em React (estrutura mod
 - `docs/TESTE-RAPIDO.md` — checklist manual.
 - `docs/EQUIPE-DESENVOLVIMENTO.md` — guia completo da equipa (onboarding, CI, backlog P0/P1/P2).
 
-Na **raiz**: `package.json` com atalhos `npm run dev:backend`, `npm run dev:frontend`, `npm run seed:integrations` (requer `npm install` em `backend/` e `frontend/`).
+Na **raiz**: `package.json` com atalhos `npm run dev:backend`, `npm run dev:frontend`, `npm run seed:integrations`, `npm run test:ci`, `npm run test:http-smoke` (API a correr), `npm run ci` (testes backend + build frontend) — requer `npm install` em `backend/` e `frontend/`.
 
 ## Backend
 

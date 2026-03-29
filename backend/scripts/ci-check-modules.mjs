@@ -10,6 +10,7 @@ const files = [
   'scripts/smoke-http.mjs',
   'src/lib/corsConfig.js',
   'src/lib/globalRateLimit.js',
+  'src/lib/securityHeaders.js',
   'src/modules/integrations/routes.js',
   'src/modules/integrations/webhookPipeline.js',
   'src/modules/integrations/webhookSignature.js',

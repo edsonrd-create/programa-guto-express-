@@ -4,7 +4,7 @@
 
 O workflow `.github/workflows/ci.yml` corre em push e pull request para `main`/`master`:
 
-- **backend**: `npm ci` + `npm run test:ci` + smoke `GET /health` (Node 22)
+- **backend**: `npm ci` + `npm run test:ci` + smoke `GET /health` e CORS (`scripts/smoke-http.mjs`, Node 22)
 - **frontend**: `npm ci` + `npm run build`
 
 Localmente (aprox.):
@@ -35,6 +35,9 @@ npm run ci
 | `METRICS_TOKEN` | Se expõe `/metrics` | Proteger métricas |
 | `OPS_WS_TOKEN` | Opcional | Se não definir, pode reutilizar a mesma string que `ADMIN_API_KEY` no `?token=` do WS (ver código) |
 | `PORT` | Opcional | Por defeito `3210` |
+| `CORS_ORIGINS` | Recom. em prod. com painel noutro host | Origens exatas separadas por vírgula |
+| `GLOBAL_RATE_LIMIT_MAX` | Opcional | Limite global por IP; ver `backend/src/lib/globalRateLimit.js` |
+| `GLOBAL_RATE_LIMIT_WINDOW_MS` | Opcional | Janela em ms (predef.: `60000`) |
 
 ### 2. Base de dados
 
@@ -71,6 +74,11 @@ cd frontend && npm ci && npm run build
 
 - Com front e API no **mesmo domínio** (ex.: `/api`), CORS costuma ser desnecessário no browser.
 - Com domínios diferentes (ou para validar `Origin` no WebSocket `/ws/ops`), defina no backend `CORS_ORIGINS` com a origem exata do painel, por exemplo: `https://pdvgutoexpress.com.br` e, se aplicável, `https://www.pdvgutoexpress.com.br` (várias origens separadas por vírgula). Ver `backend/src/lib/corsConfig.js`.
+
+### 7. Limite de pedidos e proxy
+
+- Com `GLOBAL_RATE_LIMIT_MAX` > 0, use **`TRUST_PROXY=1`** (ou hops corretos) para o limite por IP refletir o cliente real atrás do nginx.
+- A API envia cabeçalhos defensivos (`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`); o nginx pode acrescentar HSTS e políticas adicionais.
 
 ---
 
