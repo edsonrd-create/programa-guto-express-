@@ -10,6 +10,18 @@ npm run dev
 
 Variáveis úteis: ver `backend/.env.example`.
 
+### Segurança (`ADMIN_API_KEY`)
+
+Com `ADMIN_API_KEY` definida, **todas** as rotas administrativas exigem `Authorization: Bearer <chave>` ou `X-Admin-Key` (exceto `GET /health`, `GET /metrics`, `GET /auth/status`, `POST /integrations/webhook/:channel`). Em `NODE_ENV=production`, a chave é obrigatória. O painel usa a mesma chave em `VITE_ADMIN_API_KEY`.
+
+O WebSocket `/ws/ops` aceita `?token=` com `OPS_WS_TOKEN` ou, se ausente, o mesmo valor de `ADMIN_API_KEY`.
+
+### Despacho e fila
+
+- `POST /dispatch/:orderId/assign-next-driver` — atribui conforme modo em `settings` (`dispatch_queue_mode`: `fifo` ou `nearest`).
+- `POST /dispatch/:orderId/assign-driver` — corpo `{ "driverId": n }` (motoboy na fila ativa).
+- `POST /drivers/:id/location` — corpo `{ "lat", "lng" }` para modo fila por GPS.
+
 ## SQLite
 
 Ficheiro por defeito: `database.sqlite` na pasta onde corres o processo (normalmente `backend/`).

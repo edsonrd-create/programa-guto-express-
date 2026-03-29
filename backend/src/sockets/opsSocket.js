@@ -26,13 +26,16 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
 
   const path = options.path || '/ws/ops';
   const opsWsToken = (process.env.OPS_WS_TOKEN || '').trim();
+  const adminKey = (process.env.ADMIN_API_KEY || '').trim();
+  /** Se OPS_WS_TOKEN nao existir mas ADMIN_API_KEY existir, o WS exige o mesmo token (?token=). */
+  const wsSecret = opsWsToken || adminKey;
 
   /** @type {import('ws').ServerOptions} */
   const wsOpts = { server: httpServer, path };
-  if (opsWsToken) {
+  if (wsSecret) {
     wsOpts.verifyClient = (info, cb) => {
       const got = tokenFromUpgradeUrl(info.req.url);
-      const ok = got.length > 0 && timingSafeEqualString(got, opsWsToken);
+      const ok = got.length > 0 && timingSafeEqualString(got, wsSecret);
       if (ok) cb(true);
       else cb(false, 401, 'Unauthorized');
     };
@@ -105,7 +108,7 @@ export function attachOpsSocketHub(httpServer, db, options = {}) {
   const initialMs = getOpsWsBroadcastMs(db);
   console.log(
     `[ws/ops] WebSocket em ws(s)://<host>:<porta>${path} (broadcast ~${initialMs}ms via settings/env; re-lido a cada ciclo${
-      opsWsToken ? '; token obrigatorio (?token=)' : ''
+      wsSecret ? '; token obrigatorio (?token=) — OPS_WS_TOKEN ou ADMIN_API_KEY' : ''
     })`,
   );
 

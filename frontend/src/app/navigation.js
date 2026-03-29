@@ -12,4 +12,5 @@ export const NAV_MODULES = [
   { to: '/motoboys', label: 'Motoboys' },
   { to: '/integracoes', label: 'Integrações' },
   { to: '/configuracoes', label: 'Configurações' },
+  { to: '/dev-test', label: 'Teste' },
 ];

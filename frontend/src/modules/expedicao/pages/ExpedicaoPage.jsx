@@ -3,6 +3,7 @@ import { RoutingPanel } from '../components/RoutingPanel.jsx';
 import ExpedicaoConnectedView from '../components/ExpedicaoConnectedView.jsx';
 import { useExpedicaoConnected } from '../hooks/useExpedicaoConnected.js';
 import { dispatchService } from '../../../services/dispatch.service.js';
+import { settingsService } from '../../../services/settings.service.js';
 
 export default function ExpedicaoPage() {
   const [tab, setTab] = React.useState('conectada');
@@ -47,6 +48,13 @@ export default function ExpedicaoPage() {
           slaClock={x.slaClock}
           routeForOrder={x.routeForOrder}
           priorityLabel={x.priorityLabel}
+          dispatchQueueMode={x.dispatchQueueMode}
+          setDispatchQueueMode={x.setDispatchQueueMode}
+          patchDispatchQueueMode={async (mode) => {
+            await settingsService.patch({ dispatch_queue_mode: mode });
+            x.setDispatchQueueMode(mode);
+            await x.load();
+          }}
         />
       ) : (
         <RoutingPanel />

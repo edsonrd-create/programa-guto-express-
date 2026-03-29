@@ -6,6 +6,7 @@ export function StatusBar() {
   const { transport, data } = useOpsSnapshot();
   const [ok, setOk] = React.useState(null);
   const [at, setAt] = React.useState(null);
+  const [authStatus, setAuthStatus] = React.useState(null);
 
   const ping = React.useCallback(async () => {
     try {
@@ -13,6 +14,12 @@ export function StatusBar() {
       setOk(true);
     } catch {
       setOk(false);
+    }
+    try {
+      const st = await apiGet('/auth/status');
+      setAuthStatus(st);
+    } catch {
+      setAuthStatus(null);
     }
     setAt(new Date());
   }, []);
@@ -75,6 +82,19 @@ export function StatusBar() {
         </span>
       </span>
       {at && <span style={{ opacity: 0.7 }}>Último ping: {at.toLocaleTimeString('pt-BR')}</span>}
+      {needsViteKey && (
+        <span
+          style={{
+            color: '#fbbf24',
+            fontWeight: 700,
+            maxWidth: 420,
+            lineHeight: 1.35,
+          }}
+          title="O backend exige ADMIN_API_KEY"
+        >
+          Ação: defina VITE_ADMIN_API_KEY no frontend/.env (igual ao servidor) e reinicie o Vite.
+        </span>
+      )}
       <button type="button" className="btn-ghost" onClick={ping} style={{ marginLeft: 'auto' }}>
         Atualizar status
       </button>

@@ -33,19 +33,40 @@ export default function ExpedicaoConnectedView({
   slaClock,
   routeForOrder,
   priorityLabel,
+  dispatchQueueMode = 'fifo',
+  patchDispatchQueueMode,
 }) {
   const [routeIdx, setRouteIdx] = React.useState(0);
+  const [manualDriverId, setManualDriverId] = React.useState({});
   const grouping = plan ? buildGroupingSuggestion(plan) : null;
 
   async function assignOne(orderId) {
     setBusy(orderId);
     setErr('');
     try {
-      await dispatchService.assignNext(orderId);
+      await dispatchService.assignNext(orderId, {});
       await load();
       await runPlan();
     } catch (e) {
       setErr(e?.body?.message || e?.message || 'Despacho falhou');
+    }
+    setBusy(0);
+  }
+
+  async function assignManual(orderId) {
+    const id = Number(manualDriverId[orderId]);
+    if (!Number.isFinite(id)) {
+      setErr('Escolha um motoboy da fila para atribuição manual.');
+      return;
+    }
+    setBusy(orderId);
+    setErr('');
+    try {
+      await dispatchService.assignDriver(orderId, id);
+      await load();
+      await runPlan();
+    } catch (e) {
+      setErr(e?.body?.message || e?.message || 'Despacho manual falhou');
     }
     setBusy(0);
   }
@@ -94,7 +115,12 @@ export default function ExpedicaoConnectedView({
         <div>
           <h1 style={{ margin: 0, fontSize: 28 }}>Expedição conectada com a Roteirização</h1>
           <p style={{ margin: '6px 0 0', color: '#94a3b8' }}>
-            Pedidos prontos, agrupamento e despacho — modo {mode === 'ia' ? 'assistido (IA)' : 'manual'}.
+            Pedidos prontos, agrupamento e despacho — modo painel {mode === 'ia' ? 'assistido (IA)' : 'manual'}. Fila de
+            motoboys:{' '}
+            <strong style={{ color: dispatchQueueMode === 'nearest' ? '#6ee7b7' : '#93c5fd' }}>
+              {dispatchQueueMode === 'nearest' ? 'GPS (mais próximo do destino)' : 'FIFO (ordem de check-in)'}
+            </strong>
+            .
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -113,6 +139,15 @@ export default function ExpedicaoConnectedView({
           <Link to="/roteirizacao" className="btn-ghost" style={{ textDecoration: 'none', display: 'inline-block' }}>
             Central roteirização
           </Link>
+          {typeof patchDispatchQueueMode === 'function' && (
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={() => void patchDispatchQueueMode(dispatchQueueMode === 'fifo' ? 'nearest' : 'fifo')}
+            >
+              Fila: {dispatchQueueMode === 'fifo' ? 'usar GPS' : 'usar FIFO'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -136,7 +171,11 @@ export default function ExpedicaoConnectedView({
         <div className="glass-card" style={{ padding: 18 }}>
           <h2 style={{ margin: '0 0 8px', fontSize: 20 }}>Pedidos prontos</h2>
           <div style={{ color: '#94a3b8', fontSize: 14 }}>
-            Status <strong>pronto</strong> — use <strong>Despachar agora</strong> em um clique ou &quot;Despachar todos na fila&quot; no topo.
+            Status <strong>pronto</strong>. <strong>Despachar agora</strong> usa a fila (
+            {dispatchQueueMode === 'nearest'
+              ? 'motoboy com GPS mais próximo do endereço; sem GPS volta ao FIFO'
+              : 'quem entrou primeiro na fila'}
+            ). Ou escolha o motoboy abaixo (manual).
           </div>
           <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
             {ready.map((o) => {
@@ -222,10 +261,37 @@ export default function ExpedicaoConnectedView({
                       </>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12, alignItems: 'center' }}>
                     <button type="button" className="btn" disabled={busy === o.id} onClick={() => assignOne(o.id)}>
                       Despachar agora
                     </button>
+                    {(queue || []).length > 0 && (
+                      <>
+                        <select
+                          className="select"
+                          style={{ maxWidth: 200 }}
+                          value={manualDriverId[o.id] ?? ''}
+                          onChange={(e) =>
+                            setManualDriverId((prev) => ({ ...prev, [o.id]: e.target.value }))
+                          }
+                        >
+                          <option value="">Motoboy manual…</option>
+                          {(queue || []).map((q) => (
+                            <option key={q.driver_id} value={q.driver_id}>
+                              {q.name || `ID ${q.driver_id}`}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="btn-ghost"
+                          disabled={busy === o.id}
+                          onClick={() => assignManual(o.id)}
+                        >
+                          Atribuir escolhido
+                        </button>
+                      </>
+                    )}
                     <button type="button" className="btn-ghost" onClick={() => hintGroup(o.id)}>
                       Agrupar
                     </button>
@@ -319,7 +385,10 @@ export default function ExpedicaoConnectedView({
 
         <div className="glass-card" style={{ padding: 18 }}>
           <h2 style={{ margin: '0 0 8px', fontSize: 20 }}>Despacho rápido</h2>
-          <div style={{ color: '#94a3b8', fontSize: 14 }}>Fila de check-in e status dos motoboys.</div>
+          <div style={{ color: '#94a3b8', fontSize: 14 }}>
+            Quem está na fila (check-in em Motoboys). Com modo <strong>GPS</strong>, o app do motoboy deve enviar{' '}
+            <code style={{ color: '#cbd5e1' }}>POST /drivers/:id/location</code> para ordenar por proximidade.
+          </div>
           <div style={{ display: 'grid', gap: 12, marginTop: 16 }}>
             {driversList.map((d) => {
               const inQ = queueDriverIds.has(Number(d.id));
@@ -353,12 +422,18 @@ export default function ExpedicaoConnectedView({
                     {inQ && (
                       <>
                         <br />
-                        Pronto para despacho FIFO
+                        Na fila para despacho automático
+                        {d.last_lat != null && d.last_lng != null && (
+                          <>
+                            <br />
+                            Último GPS: {Number(d.last_lat).toFixed(5)}, {Number(d.last_lng).toFixed(5)}
+                          </>
+                        )}
                       </>
                     )}
                   </div>
                   <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>
-                    O sistema usa <strong>próximo da fila</strong> em “Despachar agora”.
+                    “Despachar agora” respeita o modo da fila (FIFO ou GPS). Ou use atribuição manual no pedido.
                   </div>
                 </div>
               );
@@ -381,7 +456,10 @@ export default function ExpedicaoConnectedView({
       >
         <div className="glass-card" style={{ padding: 18 }}>
           <h2 style={{ margin: '0 0 8px', fontSize: 20 }}>Fila operacional detalhada</h2>
-          <div style={{ color: '#94a3b8', fontSize: 14 }}>Um clique em Despachar atribui o próximo motoboy da fila.</div>
+          <div style={{ color: '#94a3b8', fontSize: 14 }}>
+            Um clique em Despachar atribui conforme a fila (FIFO ou GPS). A coluna manual no cartão do pedido ignora essa
+            ordem.
+          </div>
           <div className="table-wrap" style={{ overflowX: 'auto', marginTop: 16 }}>
             <table className="data" style={{ minWidth: 900 }}>
               <thead>

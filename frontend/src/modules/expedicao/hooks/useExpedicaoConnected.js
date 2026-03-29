@@ -3,6 +3,7 @@ import { ordersService } from '../../../services/orders.service.js';
 import { dispatchService } from '../../../services/dispatch.service.js';
 import { driversService } from '../../../services/drivers.service.js';
 import { routingService } from '../../../services/routing.service.js';
+import { settingsService } from '../../../services/settings.service.js';
 
 const MODE_KEY = 'guto_expedicao_mode_v1';
 
@@ -43,6 +44,7 @@ export function useExpedicaoConnected() {
     }
   });
   const [skipGoogleRoutes, setSkipGoogleRoutes] = React.useState(false);
+  const [dispatchQueueMode, setDispatchQueueMode] = React.useState('fifo');
   const [planParams, setPlanParams] = React.useState({
     maxOrdersPerRoute: 4,
     maxRouteMinutes: 40,
@@ -66,19 +68,22 @@ export function useExpedicaoConnected() {
   const load = React.useCallback(async () => {
     setErr('');
     try {
-      const [o, d, del, q, dr, cfg] = await Promise.all([
+      const [o, d, del, q, dr, cfg, st] = await Promise.all([
         ordersService.list(),
         dispatchService.listDeliveries(),
         dispatchService.listDispatchOrders(),
         driversService.queue(),
         driversService.list(),
         routingService.getConfig(),
+        settingsService.get().catch(() => ({ settings: {} })),
       ]);
       setOrders(o);
       setDeliveries(d);
       setQueue(q);
       setDrivers(dr);
       setConfig(cfg);
+      const sqm = st?.settings?.dispatch_queue_mode;
+      setDispatchQueueMode(sqm === 'nearest' ? 'nearest' : 'fifo');
       setPlanParams((p) => ({
         ...p,
         maxOrdersPerRoute: cfg.defaults?.maxOrdersPerRoute ?? p.maxOrdersPerRoute,
@@ -184,6 +189,8 @@ export function useExpedicaoConnected() {
     slaClock,
     routeForOrder,
     priorityLabel,
+    dispatchQueueMode,
+    setDispatchQueueMode,
   };
 }
 

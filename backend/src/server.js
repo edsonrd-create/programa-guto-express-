@@ -22,6 +22,7 @@ import { isWebhookAsyncMode, startWebhookWorker } from './modules/integrations/w
 import { isIntegrationSyncWorkerEnabled, startIntegrationSyncWorker } from './modules/integrations/sync/worker.js';
 import { attachOpsSocketHub } from './sockets/opsSocket.js';
 import { timingSafeEqualString } from './lib/timingSafe.js';
+import { createAdminApiKeyMiddleware } from './middleware/adminApiKey.js';
 
 initBusinessMetrics(db);
 
@@ -72,6 +73,8 @@ export function buildServerApp() {
   app.get('/metrics', metricsTokenGate, (req, res, next) => {
     handleMetrics(req, res).catch(next);
   });
+
+  app.use(createAdminApiKeyMiddleware());
 
   app.use('/auth', createAuthRouter());
   app.use('/menu', createMenuRouter());
@@ -146,6 +149,17 @@ server.on('error', (err) => {
   }
   throw err;
 });
+
+const adminKeySet = Boolean((process.env.ADMIN_API_KEY || '').trim());
+if (process.env.NODE_ENV === 'production' && !adminKeySet) {
+  console.error('[security] ADMIN_API_KEY nao definida — todas as rotas administrativas retornam 503 ate configurar.');
+} else if (!adminKeySet) {
+  console.warn(
+    '[security] ADMIN_API_KEY nao definida — API administrativa aberta (somente desenvolvimento). Para testes reais, defina a mesma chave no backend e VITE_ADMIN_API_KEY no frontend.',
+  );
+} else {
+  console.log('[security] ADMIN_API_KEY ativa — rotas protegidas (webhook de integracao e /health publicos).');
+}
 
 if (HOST) {
   server.listen(PORT, HOST, () => console.log(`Servidor rodando em http://${HOST}:${PORT}`));

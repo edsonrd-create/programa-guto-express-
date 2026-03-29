@@ -7,11 +7,14 @@ import { Router } from 'express';
 export function createAuthRouter() {
   const r = Router();
   r.get('/status', (_req, res) => {
+    const keySet = Boolean((process.env.ADMIN_API_KEY || '').trim());
     res.json({
       ok: true,
-      authenticated: false,
-      scheme: 'none',
-      hint: 'Use ADMIN_API_KEY no backend para proteger /ai/chat; login de painel virá aqui.'
+      adminApiKeyConfigured: keySet,
+      scheme: keySet ? 'bearer_admin' : 'none',
+      hint: keySet
+        ? 'Rotas administrativas exigem Authorization: Bearer ou X-Admin-Key (mesmo valor que ADMIN_API_KEY).'
+        : 'Defina ADMIN_API_KEY no backend e VITE_ADMIN_API_KEY no frontend para testes reais.',
     });
   });
   return r;

@@ -21,7 +21,8 @@ export function getApiPublicBase() {
 /** URL WebSocket do hub operacional (mesmo host/porta que a API). */
 export function getWsOpsUrl(wsPath = '/ws/ops') {
   const pathOnly = wsPath.startsWith('/') ? wsPath : `/${wsPath}`;
-  const secret = (import.meta.env.VITE_OPS_WS_TOKEN || '').trim();
+  const secret =
+    (import.meta.env.VITE_OPS_WS_TOKEN || '').trim() || (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
   const q = secret ? `?token=${encodeURIComponent(secret)}` : '';
 
   const base = getApiPublicBase();
@@ -63,9 +64,17 @@ export class ApiError extends Error {
  * @param {string} path
  * @param {RequestInit} [init]
  */
+function attachAdminKey(headers) {
+  const k = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
+  if (!k) return;
+  if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${k}`);
+  if (!headers.has('X-Admin-Key')) headers.set('X-Admin-Key', k);
+}
+
 export async function apiFetch(path, init = {}) {
   const url = joinPath(getApiPublicBase(), path);
   const headers = new Headers(init.headers);
+  attachAdminKey(headers);
   if (init.body != null && typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }

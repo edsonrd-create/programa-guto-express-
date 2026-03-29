@@ -16,6 +16,8 @@ const SettingsPatchSchema = z
     allow_auto_dispatch: z.coerce.boolean().optional(),
     /** Quando true, POST /routing/plan pode enriquecer rotas com Google Routes (se houver chave no servidor). */
     routing_google_maps_auto: z.coerce.boolean().optional(),
+    /** fifo = ordem na fila; nearest = mais próximo do pedido (GPS) entre quem está na fila */
+    dispatch_queue_mode: z.enum(['fifo', 'nearest']).optional(),
   })
   .strict();
 

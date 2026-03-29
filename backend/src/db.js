@@ -264,3 +264,7 @@ CREATE TABLE IF NOT EXISTS delivery_zone_audit (
 
 addColumnIfMissing('orders', 'estimated_delivery_minutes', 'estimated_delivery_minutes INTEGER');
 addColumnIfMissing('orders', 'delivery_zone_id', 'delivery_zone_id INTEGER');
+
+addColumnIfMissing('drivers', 'last_lat', 'last_lat REAL');
+addColumnIfMissing('drivers', 'last_lng', 'last_lng REAL');
+addColumnIfMissing('drivers', 'location_updated_at', 'location_updated_at TEXT');

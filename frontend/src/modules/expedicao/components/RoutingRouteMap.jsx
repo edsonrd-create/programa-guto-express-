@@ -1,9 +1,11 @@
 import React from 'react';
 import { GoogleMap, Marker, Polyline, useJsApiLoader } from '@react-google-maps/api';
 import { initGoogleMapsAppCheck, isGoogleMapsAppCheckEnabled } from '../../../lib/initGoogleMapsAppCheck.js';
+import OperationalRouteMapSvg from './OperationalRouteMapSvg.jsx';
+import { getRoutePathPoints, validStopsList } from '../../../lib/routeMapGeometry.js';
 
-/** Referência estável — array novo a cada render quebra o useJsApiLoader e o mapa não inicializa. */
-const MAP_LIBRARIES = Object.freeze(['geometry']);
+/** Sem `geometry` — polyline é decodificada localmente (routeMapGeometry). */
+const MAP_LIBRARIES = Object.freeze([]);
 
 const mapStyle = (h) => ({ width: '100%', height: h, minHeight: h, borderRadius: 12 });
 
@@ -15,23 +17,6 @@ const defaultMapOptions = {
   fullscreenControl: false,
 };
 
-function validStopsList(stops) {
-  return (stops || []).filter((s) => {
-    const la = Number(s.lat);
-    const ln = Number(s.lng);
-    return Number.isFinite(la) && Number.isFinite(ln) && Math.abs(la) <= 90 && Math.abs(ln) <= 180;
-  });
-}
-
-function buildFallbackPath(store, stops) {
-  if (!store || store.lat == null || store.lng == null) return [];
-  const o = { lat: Number(store.lat), lng: Number(store.lng) };
-  if (!Number.isFinite(o.lat) || !Number.isFinite(o.lng)) return [];
-  const middle = validStopsList(stops).map((s) => ({ lat: Number(s.lat), lng: Number(s.lng) }));
-  if (!middle.length) return [];
-  return [o, ...middle, o];
-}
-
 function RoutingRouteMapInner({ apiKey, store, stops, encodedPolyline, height = 300 }) {
   const cleanStops = React.useMemo(() => validStopsList(stops), [stops]);
 
@@ -42,10 +27,15 @@ function RoutingRouteMapInner({ apiKey, store, stops, encodedPolyline, height = 
     libraries: MAP_LIBRARIES,
   });
 
-  const [path, setPath] = React.useState([]);
+  const routeGeom = React.useMemo(
+    () => getRoutePathPoints(store, cleanStops, encodedPolyline),
+    [store, cleanStops, encodedPolyline],
+  );
+  const path = routeGeom.points;
+  const pathSource = routeGeom.source;
 
   React.useEffect(() => {
-    if (!isLoaded || !window.google?.maps?.importLibrary) return;
+    if (!isLoaded || !window.google?.maps) return;
     if (!isGoogleMapsAppCheckEnabled()) return;
     let alive = true;
     (async () => {
@@ -60,44 +50,34 @@ function RoutingRouteMapInner({ apiKey, store, stops, encodedPolyline, height = 
     };
   }, [isLoaded]);
 
-  React.useEffect(() => {
-    if (!isLoaded || !window.google?.maps?.geometry?.encoding) {
-      if (isLoaded) setPath(buildFallbackPath(store, cleanStops));
-      return;
-    }
-    if (encodedPolyline) {
-      try {
-        const decoded = window.google.maps.geometry.encoding.decodePath(encodedPolyline);
-        setPath(decoded.map((ll) => ({ lat: ll.lat(), lng: ll.lng() })));
-      } catch {
-        setPath(buildFallbackPath(store, cleanStops));
-      }
-      return;
-    }
-    setPath(buildFallbackPath(store, cleanStops));
-  }, [isLoaded, encodedPolyline, store, cleanStops]);
-
   if (loadError) {
     const msg = String(loadError.message || loadError);
     const refererBlocked =
       /RefererNotAllowed|referer.*not allowed/i.test(msg) || msg.includes('RefererNotAllowedMapError');
     return (
-      <div className="err" style={{ lineHeight: 1.5 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>Mapa: {msg}</div>
-        {refererBlocked && (
-          <div style={{ fontSize: 13, color: '#cbd5e1' }}>
-            No Google Cloud Console, abra a chave usada no painel → <strong>Restrições de aplicativo</strong> →{' '}
-            <strong>Sites</strong> e inclua exatamente:{' '}
-            <code style={{ color: '#93c5fd' }}>{typeof window !== 'undefined' ? `${window.location.origin}/*` : 'http://localhost:5173/*'}</code>
-            <br />
-            Aguarde alguns minutos após salvar e recarregue a página.
-          </div>
-        )}
+      <div>
+        <div className="err" style={{ lineHeight: 1.5, marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>Mapa Google: {msg}</div>
+          {refererBlocked && (
+            <div style={{ fontSize: 13, color: '#cbd5e1' }}>
+              No Google Cloud Console, abra a chave usada no painel → <strong>Restrições de aplicativo</strong> →{' '}
+              <strong>Sites</strong> e inclua exatamente:{' '}
+              <code style={{ color: '#93c5fd' }}>
+                {typeof window !== 'undefined' ? `${window.location.origin}/*` : 'http://localhost:5173/*'}
+              </code>
+              <br />
+              Aguarde alguns minutos após salvar e recarregue a página.
+            </div>
+          )}
+        </div>
+        <OperationalRouteMapSvg store={store} stops={cleanStops} encodedPolyline={encodedPolyline} height={height} />
+        <div style={{ marginTop: 8, fontSize: 12, color: '#94a3b8' }}>
+          Acima: vista esquemática com hub, paradas e trajeto (polyline do servidor ou linha aproximada).
+        </div>
       </div>
     );
   }
 
-  /** Novo objeto a cada render quebra o GoogleMap/Polyline (MVCArray / setAt). */
   const stop0Lat = cleanStops[0] != null ? Number(cleanStops[0].lat) : null;
   const stop0Lng = cleanStops[0] != null ? Number(cleanStops[0].lng) : null;
   const mapCenter = React.useMemo(() => {
@@ -112,7 +92,6 @@ function RoutingRouteMapInner({ apiKey, store, stops, encodedPolyline, height = 
     return { lat: -25.3648956, lng: -49.1771888 };
   }, [store?.lat, store?.lng, stop0Lat, stop0Lng]);
 
-  /** Remonta o Polyline quando o trajeto muda — evita bug do wrapper (.setAt em path interno undefined). */
   const polylineMountKey = React.useMemo(() => {
     if (!path.length) return 'empty';
     const a = path[0];
@@ -155,46 +134,52 @@ function RoutingRouteMapInner({ apiKey, store, stops, encodedPolyline, height = 
             <Marker position={{ lat: Number(store.lat), lng: Number(store.lng) }} title={store?.label || 'Loja'} />
           )}
           {cleanStops.map((s) => (
-            <Marker key={s.orderId} position={{ lat: Number(s.lat), lng: Number(s.lng) }} title={`#${s.orderId}`} />
+            <Marker
+              key={String(s.orderId)}
+              position={{ lat: Number(s.lat), lng: Number(s.lng) }}
+              title={`#${s.orderId}`}
+            />
           ))}
         </GoogleMap>
       )}
-      {encodedPolyline ? (
+      {pathSource === 'google' ? (
         <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>Trajeto: Routes API (estrada)</div>
-      ) : (
+      ) : pathSource === 'fallback' ? (
         <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>Trajeto: linha aproximada (sem polyline)</div>
+      ) : (
+        <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>Trajeto: —</div>
       )}
     </div>
   );
 }
 
 /**
- * Mapa da rota (polyline Google ou linha reta loja → paradas → loja).
+ * Mapa da rota (Google Maps se houver chave no browser) + sempre geometria correta via decodificação local da polyline.
+ * Sem chave: apenas SVG (hub + paradas + linha).
  */
 export function RoutingRouteMap({ apiKey, store, stops, encodedPolyline, height = 300 }) {
   const key = (apiKey || '').trim();
+  const cleanStops = React.useMemo(() => validStopsList(stops), [stops]);
+
   if (!key) {
     return (
-      <div
-        style={{
-          padding: 14,
-          color: '#94a3b8',
-          fontSize: 13,
-          background: '#0f172a',
-          borderRadius: 12,
-          minHeight: height,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}
-      >
-        <div>
-          Para o mapa no painel, vá em <b style={{ color: '#e2e8f0' }}>Configurações</b> e cole a chave (Maps
-          JavaScript API), ou defina <code style={{ color: '#cbd5e1' }}>VITE_GOOGLE_MAPS_API_KEY</code> no build.
-        </div>
-        <div style={{ marginTop: 12, fontSize: 12, opacity: 0.85 }}>
-          Modo fallback: use o painel de rotas à direita e “Otimizar agora” com o motor interno + Google Routes no
-          servidor (POST /routing/plan).
+      <div>
+        <OperationalRouteMapSvg store={store} stops={cleanStops} encodedPolyline={encodedPolyline} height={height} />
+        <div
+          style={{
+            marginTop: 12,
+            padding: 12,
+            color: '#94a3b8',
+            fontSize: 12,
+            background: 'rgba(15,23,42,0.6)',
+            borderRadius: 10,
+            border: '1px solid #1e293b',
+          }}
+        >
+          <strong style={{ color: '#e2e8f0' }}>Mapa de ruas:</strong> em{' '}
+          <b style={{ color: '#e2e8f0' }}>Configurações</b> defina a chave Maps (JavaScript) ou{' '}
+          <code style={{ color: '#cbd5e1' }}>VITE_GOOGLE_MAPS_API_KEY</code>. A polyline do servidor e o hub já aparecem
+          acima sem essa chave.
         </div>
       </div>
     );
@@ -202,10 +187,10 @@ export function RoutingRouteMap({ apiKey, store, stops, encodedPolyline, height 
 
   return (
     <RoutingRouteMapInner
-      key={key || 'no-key'}
+      key={key}
       apiKey={key}
       store={store}
-      stops={stops}
+      stops={cleanStops}
       encodedPolyline={encodedPolyline}
       height={height}
     />

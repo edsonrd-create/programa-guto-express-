@@ -37,3 +37,10 @@ export function getAutopilotRuntimeSettings(db) {
     allowAutoDispatch: parseBoolStored(getSettingRaw(db, 'allow_auto_dispatch'), false),
   };
 }
+
+/** Despacho: `fifo` = ordem de check-in na fila; `nearest` = entre os da fila, o mais próximo do destino (ou loja). */
+export function getDispatchQueueMode(db) {
+  const raw = getSettingRaw(db, 'dispatch_queue_mode');
+  if (String(raw || '').trim().toLowerCase() === 'nearest') return 'nearest';
+  return 'fifo';
+}
