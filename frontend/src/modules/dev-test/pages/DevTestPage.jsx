@@ -58,9 +58,22 @@ export default function DevTestPage() {
           </span>
         </div>
         {health && (
-          <pre style={{ marginTop: 12, fontSize: 12, color: '#cbd5e1', overflow: 'auto' }}>
-            {JSON.stringify(health, null, 2)}
-          </pre>
+          <>
+            {(health.version || health.node) && (
+              <p style={{ marginTop: 10, marginBottom: 0, fontSize: 13, color: '#94a3b8' }}>
+                {health.version && (
+                  <>
+                    Backend <strong style={{ color: '#e2e8f0' }}>v{health.version}</strong>
+                  </>
+                )}
+                {health.version && health.node ? ' · ' : null}
+                {health.node && <span>Node {health.node}</span>}
+              </p>
+            )}
+            <pre style={{ marginTop: 12, fontSize: 12, color: '#cbd5e1', overflow: 'auto' }}>
+              {JSON.stringify(health, null, 2)}
+            </pre>
+          </>
         )}
         {snap && (
           <details style={{ marginTop: 12 }}>
