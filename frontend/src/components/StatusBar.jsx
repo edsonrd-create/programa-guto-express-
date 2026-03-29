@@ -34,6 +34,9 @@ export function StatusBar() {
     ok === null ? 'Verificando API…' : ok ? 'API online' : 'API offline (suba o backend :3210)';
   const color = ok === null ? '#94a3b8' : ok ? '#34d399' : '#f87171';
 
+  const viteKey = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
+  const needsViteKey = Boolean(authStatus?.adminApiKeyConfigured) && !viteKey;
+
   const st = data?.store;
   const storeLine =
     st &&
