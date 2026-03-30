@@ -45,3 +45,13 @@ npm run backup:db
 ```
 
 No Windows pode usar `BACKUP-DB.cmd` na raiz. Ver `docs/DEPLOY.md` para agendar cópias em produção.
+
+## Smoke automatizado (API em produção ou staging)
+
+Com a API acessível por HTTPS (sem precisar de chave):
+
+```bash
+npm run smoke:deploy -- https://SEU_DOMINIO/api
+```
+
+Opcional: `SMOKE_PANEL_URL=https://SEU_DOMINIO` (verifica HTML com `#root`). Detalhes em `docs/DEPLOY.md`.

@@ -114,6 +114,24 @@ No repositório, com o backend local a correr noutra base:
 cd backend && SMOKE_BASE_URL="https://pdvgutoexpress.com.br/api" npm run test:http-smoke
 ```
 
+**Smoke automatizado pós-deploy (health + `/auth/status` + painel opcional):**
+
+```bash
+# Na raiz (recomendado)
+npm run smoke:deploy -- https://pdvgutoexpress.com.br/api
+
+# Ou dentro de backend/
+npm run smoke:deploy -- https://pdvgutoexpress.com.br/api
+
+# Variáveis (útil em CI ou scripts)
+SMOKE_BASE_URL="https://pdvgutoexpress.com.br/api" \
+SMOKE_PANEL_URL="https://pdvgutoexpress.com.br" \
+SMOKE_EXPECT_VERSION="0.2.1" \
+npm run smoke:deploy --prefix backend
+```
+
+Com proxy a remover cabeçalhos de segurança, use `SMOKE_SKIP_SECURITY_HEADERS=1`. Ver `node backend/scripts/deploy-smoke.mjs --help`.
+
 (Ajuste `SMOKE_BASE_URL` se o path for diferente. Se o endpoint só responder em HTTPS com certificado válido, o comando tem de correr numa máquina com DNS/firewall que alcance o site.)
 
 ### 2. Painel — sessão operacional

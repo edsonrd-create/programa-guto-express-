@@ -2,7 +2,7 @@
  * Integração: sobe o servidor real numa porta livre e valida GET /health.
  * Não requer curl; útil em Windows e na CI.
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import net from 'node:net';
@@ -56,6 +56,59 @@ test('servidor: GET /health responde com JSON esperado', { timeout: 60_000 }, as
       }
     }
     assert.equal(success, true, 'GET /health não ficou disponível a tempo');
+  } finally {
+    try {
+      proc.kill('SIGTERM');
+    } catch {
+      /* ignore */
+    }
+    await new Promise((res) => setTimeout(res, 1000));
+    if (proc.exitCode === null) {
+      try {
+        proc.kill('SIGKILL');
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+});
+
+test('deploy-smoke: CLI valida /health e /auth/status', { timeout: 60_000 }, async () => {
+  const port = await freePort();
+  const backendRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const proc = spawn(process.execPath, ['src/server.js'], {
+    cwd: backendRoot,
+    env: {
+      ...process.env,
+      PORT: String(port),
+      NODE_ENV: 'development',
+      ADMIN_API_KEY: '',
+    },
+    stdio: 'ignore',
+  });
+
+  try {
+    let up = false;
+    for (let i = 0; i < 60; i++) {
+      try {
+        const r = await fetch(`http://127.0.0.1:${port}/health`);
+        if (r.ok) {
+          up = true;
+          break;
+        }
+      } catch {
+        /* */
+      }
+      await new Promise((res) => setTimeout(res, 250));
+    }
+    assert.equal(up, true, 'servidor não ficou disponível');
+
+    const smoke = spawnSync(
+      process.execPath,
+      ['scripts/deploy-smoke.mjs', `http://127.0.0.1:${port}`],
+      { cwd: backendRoot, encoding: 'utf8' },
+    );
+    assert.equal(smoke.status, 0, smoke.stdout + '\n' + smoke.stderr);
   } finally {
     try {
       proc.kill('SIGTERM');

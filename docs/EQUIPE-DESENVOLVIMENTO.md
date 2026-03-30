@@ -57,7 +57,7 @@ npm run ci         # backend test:ci + build frontend
 2. Se mudaram envs de produção: `DEPLOY.md` ou `backend/.env.example`.
 3. `git push` e workflow **CI** verde no GitHub.
 4. Deploy: `DEPLOY.md` (`ADMIN_API_KEY`, `VITE_ADMIN_API_KEY`, `VITE_API_URL`, `CORS_ORIGINS`).
-5. Smoke: `docs/TESTE-RAPIDO.md` quando aplicável.
+5. Smoke: `npm run smoke:deploy -- https://…/api` (e opcional `SMOKE_PANEL_URL`) — ver `DEPLOY.md` e `TESTE-RAPIDO.md`.
 
 ---
 

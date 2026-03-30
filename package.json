@@ -15,6 +15,7 @@
     "test:node": "npm run test:node --prefix backend",
     "test:ci": "npm run test:ci --prefix backend",
     "test:http-smoke": "npm run test:http-smoke --prefix backend",
+    "smoke:deploy": "npm run smoke:deploy --prefix backend --",
     "ci": "npm run test:ci --prefix backend && npm run test:node --prefix backend && npm run build --prefix frontend",
     "gen:admin-key": "node scripts/gen-admin-key.mjs",
     "version:nuget": "node scripts/nuget-version.mjs",

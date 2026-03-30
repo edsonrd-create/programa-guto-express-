@@ -8,6 +8,7 @@ import path from 'node:path';
 const root = path.join(fileURLToPath(new URL('.', import.meta.url)), '..');
 const files = [
   'scripts/smoke-http.mjs',
+  'scripts/deploy-smoke.mjs',
   'src/modules/kds/kdsOrderView.js',
   'src/modules/auth/routes.js',
   'src/lib/corsConfig.js',

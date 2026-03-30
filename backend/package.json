@@ -14,7 +14,8 @@
     "test:unit": "node --test test/cors-config.test.js",
     "test:integration": "node --test test/server-health.integration.test.mjs",
     "test:node": "node --test test/cors-config.test.js test/server-health.integration.test.mjs test/nuget-version.test.js",
-    "test:http-smoke": "node scripts/smoke-http.mjs"
+    "test:http-smoke": "node scripts/smoke-http.mjs",
+    "smoke:deploy": "node scripts/deploy-smoke.mjs"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",
