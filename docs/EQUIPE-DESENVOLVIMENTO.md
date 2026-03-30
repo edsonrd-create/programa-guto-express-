@@ -98,7 +98,7 @@ Use isto como contrato interno até “fecho” do MVP operacional.
 
 ### P1 — produto
 
-- [x] **Menu/cardápio:** `GET /menu/items` lê **`menu_items`** (SQLite). Falta: UI/painel ou import para gerir linhas; atendimento pode consumir a lista quando integrado.
+- [x] **Menu/cardápio:** API + painel **Cardápio** (`/cardapio`) + atendimento com seleção do catálogo (meta `menu_item_id` no item do pedido).
 - [ ] **Auth:** evoluir `GET /auth/status` para sessão/JWT se o painel for exposto na internet.
 
 ### P2 — qualidade de vida

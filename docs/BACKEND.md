@@ -52,7 +52,7 @@ Recria canais padrão (iFood, Neemo, …) se ainda não existirem. Ver `docs/INT
 | Tempo real | WebSocket `WS /ws/ops` (JSON `{ type: 'ops_snapshot', payload }`) |
 | IA | `GET /ai/autopilot`, `GET /ai/insights`, rotas sob `/ai` (chat) |
 | Integrações | `GET/POST /integrations`, `POST /integrations/webhook/:channel`, `GET /integrations/review-queue`, `GET /integrations/webhook-jobs` |
-| Auth / cardápio | `GET /auth/status` (JSON operacional). `GET /menu/items` — itens ativos em SQLite (`menu_items`: `id`, `name`, `unitPrice`, `sortOrder`, …) |
+| Auth / cardápio | `GET /auth/status` (JSON operacional). `GET /menu/items` — catálogo (só ativos). `GET/POST/PATCH /menu/manage/items` validados com Zod (`POST` cria, `PATCH :id` atualiza nome/preço/ativo/ordem/notas). |
 | Roteirização | `GET /routing/config`, `GET /routing/classify`, `GET /routing/geocode?q=`, `POST /routing/plan` |
 
 ## Roteirização e Google Maps

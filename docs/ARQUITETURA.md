@@ -75,7 +75,7 @@ Servidor **Express** montado em `server.js`: CORS, JSON (limite 512kb, `rawBody`
 | `modules/integrations` | Canais, **webhook**, logs, **review queue**, fila assíncrona de jobs. |
 | `modules/customers` | Clientes (`/clients`), chave natural frequentemente o **telefone** (único). `POST /` validado com Zod (`validation/httpSchemas.js`). |
 | `modules/drivers` | Motoboys e fila (`/drivers`, `/drivers/queue`). |
-| `modules/menu` | `GET /menu/items` — lista `menu_items` (SQLite; vazio até inserir linhas). |
+| `modules/menu` | `GET /menu/items` (catálogo); CRUD em `/menu/manage/items` (painel **Cardápio**). |
 | `modules/auth` | `GET /auth/status` (evolução futura). |
 | `modules/ai` | Autopilot, insights embutidos no snapshot, roteamento de chat. |
 | `modules/ops` | `buildOperationalSnapshot(db)` — visão única para painel e IA. |

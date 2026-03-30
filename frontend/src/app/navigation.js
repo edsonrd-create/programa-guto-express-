@@ -5,6 +5,7 @@ export const NAV_MODULES = [
   { to: '/live-ops', label: 'Live Ops' },
   { to: '/autopilot', label: 'Autopilot' },
   { to: '/atendimento', label: 'Atendimento' },
+  { to: '/cardapio', label: 'Cardápio' },
   { to: '/pedidos', label: 'Pedidos' },
   { to: '/kds', label: 'KDS' },
   { to: '/expedicao', label: 'Expedição' },

@@ -22,6 +22,37 @@ export const ClientCreateBodySchema = z.object({
     .regex(/^[0-9+\s().\-/]+$/, 'phone com caracteres invalidos'),
 });
 
+export const MenuItemCreateBodySchema = z
+  .object({
+    name: z.string().trim().min(1, 'name obrigatorio').max(200),
+    unit_price: z.coerce.number().finite().min(0),
+    active: z.coerce.boolean().optional().default(true),
+    sort_order: z.coerce.number().int().optional().default(0),
+    notes: z.union([z.string().trim().max(500), z.literal('')]).optional(),
+  })
+  .transform((o) => ({
+    name: o.name,
+    unit_price: o.unit_price,
+    active: o.active,
+    sort_order: o.sort_order ?? 0,
+    notes: o.notes === undefined || o.notes === '' ? null : o.notes,
+  }));
+
+export const MenuItemPatchBodySchema = z
+  .object({
+    name: z.string().trim().min(1).max(200).optional(),
+    unit_price: z.coerce.number().finite().min(0).optional(),
+    active: z.coerce.boolean().optional(),
+    sort_order: z.coerce.number().int().optional(),
+    notes: z.union([z.string().trim().max(500), z.literal(''), z.null()]).optional(),
+  })
+  .transform((o) => {
+    const out = { ...o };
+    if (out.notes === '') out.notes = null;
+    return out;
+  })
+  .refine((o) => Object.keys(o).length > 0, { message: 'Nenhum campo para atualizar' });
+
 export const OrderCreateBodySchema = z
   .object({
     client_id: z.union([z.coerce.number().int().positive(), z.null()]).optional(),

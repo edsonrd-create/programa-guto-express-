@@ -6,6 +6,7 @@ import CommandCenterPage from '../modules/command-center/pages/CommandCenterPage
 import LiveOpsPage from '../modules/live-ops/pages/LiveOpsPage.jsx';
 import AutopilotPage from '../modules/autopilot/pages/AutopilotPage.jsx';
 import AtendimentoPage from '../modules/atendimento/pages/AtendimentoPage.jsx';
+import CardapioPage from '../modules/cardapio/pages/CardapioPage.jsx';
 import PedidosPage from '../modules/pedidos/pages/PedidosPage.jsx';
 import KdsPage from '../modules/kds/pages/KdsPage.jsx';
 import ExpedicaoPage from '../modules/expedicao/pages/ExpedicaoPage.jsx';
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/live-ops" element={<LiveOpsPage />} />
           <Route path="/autopilot" element={<AutopilotPage />} />
           <Route path="/atendimento" element={<AtendimentoPage />} />
+          <Route path="/cardapio" element={<CardapioPage />} />
           <Route path="/pedidos" element={<PedidosPage />} />
           <Route path="/kds" element={<KdsPage />} />
           <Route path="/expedicao" element={<ExpedicaoPage />} />

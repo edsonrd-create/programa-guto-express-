@@ -57,6 +57,12 @@ test('servidor: GET /health responde com JSON esperado', { timeout: 60_000 }, as
         assert.ok(Array.isArray(menu.items));
         assert.equal(menu.source, 'database');
 
+        const mgr = await fetch(`http://127.0.0.1:${port}/menu/manage/items`);
+        assert.equal(mgr.ok, true);
+        const managed = await mgr.json();
+        assert.equal(managed.ok, true);
+        assert.ok(Array.isArray(managed.items));
+
         success = true;
         break;
       } catch {
