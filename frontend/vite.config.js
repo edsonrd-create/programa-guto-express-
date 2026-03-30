@@ -22,7 +22,11 @@ const proxyPaths = [
   '/ws',
 ];
 
+/** Base relativa para `electron/main.cjs` carregar `dist/index.html` com `loadFile`. */
+const electronBase = process.env.ELECTRON_BUILD === '1' ? './' : '/';
+
 export default defineConfig({
+  base: electronBase,
   plugins: [
     react({
       jsxRuntime: 'automatic',
@@ -39,5 +43,24 @@ export default defineConfig({
         { target: proxyTarget, changeOrigin: true, ...(p === '/ws' ? { ws: true } : {}) },
       ]),
     ),
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('firebase')) return 'vendor-firebase';
+          if (id.includes('@react-google-maps')) return 'vendor-maps';
+          if (
+            id.includes('node_modules/react-dom') ||
+            id.includes('node_modules/react-router') ||
+            id.includes('node_modules/react/')
+          ) {
+            return 'vendor-react';
+          }
+          return 'vendor';
+        },
+      },
+    },
   },
 });

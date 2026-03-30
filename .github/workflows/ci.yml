@@ -92,3 +92,9 @@ jobs:
         run: npm run build
         env:
           VITE_API_URL: http://127.0.0.1:3210
+
+      - name: Build com base Electron (loadFile / dist)
+        run: npm run build
+        env:
+          ELECTRON_BUILD: '1'
+          VITE_API_URL: http://127.0.0.1:3210

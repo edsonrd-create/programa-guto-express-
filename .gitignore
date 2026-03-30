@@ -25,3 +25,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Cópias / rascunhos locais (não versionar)
+SALVO*.txt

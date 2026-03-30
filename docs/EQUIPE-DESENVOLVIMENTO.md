@@ -23,8 +23,9 @@ Documento único para onboarding, dia‑a‑dia e fecho dos **últimos detalhes*
 2. **Clonar** o repositório e entrar na pasta do projeto.
 3. **Instalar dependências:**
    ```bash
-   cd backend && npm install && cd ../frontend && npm install
+   cd backend && npm install && cd ../frontend && npm install && cd .. && npm install
    ```
+   O `npm install` na **raiz** é opcional e necessário só para `npm run electron:dev` / `electron` (ver `docs/ELECTRON.md`).
 4. **Variáveis:** copiar/criar `backend/.env` a partir de `backend/.env.example` (se existir); no frontend, opcional `frontend/.env` com `VITE_API_URL=http://127.0.0.1:3210`.
 5. **Subir tudo em desenvolvimento (duas terminais):**
    - Terminal A: `cd backend && npm run dev`
@@ -39,7 +40,7 @@ Documento único para onboarding, dia‑a‑dia e fecho dos **últimos detalhes*
 | Passo | Ação |
 |--------|------|
 | Branch | `feature/<tema>` ou `fix/<tema>` a partir de `main`. |
-| Antes do PR | `npm run ci` na **raiz** (após `npm install` em `backend/` e `frontend/`). |
+| Antes do PR | `npm run ci` na **raiz** (após `npm install` em `backend/`, `frontend/` e, se usar desktop, na raiz). |
 | PR | Objetivo: CI verde em GitHub Actions. |
 | Merge | Preferir squash ou merge commit alinhado à política da equipa. |
 
@@ -49,6 +50,14 @@ Documento único para onboarding, dia‑a‑dia e fecho dos **últimos detalhes*
 npm run test:ci    # só backend (smoke + checks)
 npm run ci         # backend test:ci + build frontend
 ```
+
+### Após alterações (antes do merge)
+
+1. `npm run ci` na raiz.
+2. Se mudaram envs de produção: `DEPLOY.md` ou `backend/.env.example`.
+3. `git push` e workflow **CI** verde no GitHub.
+4. Deploy: `DEPLOY.md` (`ADMIN_API_KEY`, `VITE_ADMIN_API_KEY`, `VITE_API_URL`, `CORS_ORIGINS`).
+5. Smoke: `docs/TESTE-RAPIDO.md` quando aplicável.
 
 ---
 

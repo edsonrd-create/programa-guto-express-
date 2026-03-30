@@ -13,7 +13,7 @@
     "test:ci": "npm run test:smoke && node scripts/ci-check-modules.mjs",
     "test:unit": "node --test test/cors-config.test.js",
     "test:integration": "node --test test/server-health.integration.test.mjs",
-    "test:node": "node --test test/cors-config.test.js test/server-health.integration.test.mjs",
+    "test:node": "node --test test/cors-config.test.js test/server-health.integration.test.mjs test/nuget-version.test.js",
     "test:http-smoke": "node scripts/smoke-http.mjs"
   },
   "dependencies": {

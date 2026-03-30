@@ -38,7 +38,7 @@ export function useRoteirizacaoLive() {
   const [plan, setPlan] = React.useState(null);
   const [busyPlan, setBusyPlan] = React.useState(false);
   const [err, setErr] = React.useState('');
-  const [rules, setRulesState] = React.useState(loadRules);
+  const [rules, setRulesState] = React.useState(() => loadRules());
 
   const setRules = React.useCallback((next) => {
     setRulesState((prev) => {

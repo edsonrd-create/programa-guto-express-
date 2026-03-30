@@ -5,13 +5,15 @@
 O workflow `.github/workflows/ci.yml` corre em push e pull request para `main`/`master`:
 
 - **backend**: `npm ci` + `npm run test:ci` + `npm run test:node` (unit + integração) + smoke `GET /health` e CORS (`scripts/smoke-http.mjs`, Node 22)
-- **frontend**: `npm ci` + `npm run build`
+- **frontend**: `npm ci` + `npm run build` + segundo build com `ELECTRON_BUILD=1` (valida `base: './'` para janela Electron; ver `docs/ELECTRON.md`)
 
 Localmente (aprox.):
 
 ```bash
 cd backend && npm ci && npm run test:ci && npm run test:node
 cd ../frontend && npm ci && npm run build
+# Opcional — alinhar ao CI (Electron / dist relativo):
+ELECTRON_BUILD=1 npm run build
 ```
 
 Na raiz:
