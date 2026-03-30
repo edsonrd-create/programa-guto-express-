@@ -4,8 +4,11 @@
 
 O workflow `.github/workflows/ci.yml` corre em push e pull request para `main`/`master`:
 
+- **Estado:** ver [Actions no GitHub](https://github.com/edsonrd-create/programa-guto-express-/actions); o último push à `main` deve mostrar **Success** (jobs Backend Node 20/22 + Frontend build).
 - **backend**: `npm ci` + `npm run test:ci` + `npm run test:node` (unit + integração) + smoke `GET /health` e CORS (`scripts/smoke-http.mjs`, Node 22)
 - **frontend**: `npm ci` + `npm run build` + segundo build com `ELECTRON_BUILD=1` (valida `base: './'` para janela Electron; ver `docs/ELECTRON.md`)
+
+Nota: o GitHub pode avisar que *actions* internas usam Node 20 no runner — não afeta os jobs da aplicação; a matriz continua a testar Node 20 e 22 no código.
 
 Localmente (aprox.):
 

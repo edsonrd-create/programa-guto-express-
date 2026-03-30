@@ -11,6 +11,7 @@ const files = [
   'scripts/deploy-smoke.mjs',
   'src/modules/kds/kdsOrderView.js',
   'src/modules/auth/routes.js',
+  'src/modules/menu/routes.js',
   'src/lib/corsConfig.js',
   'src/lib/globalRateLimit.js',
   'src/lib/securityHeaders.js',

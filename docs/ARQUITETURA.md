@@ -75,7 +75,7 @@ Servidor **Express** montado em `server.js`: CORS, JSON (limite 512kb, `rawBody`
 | `modules/integrations` | Canais, **webhook**, logs, **review queue**, fila assíncrona de jobs. |
 | `modules/customers` | Clientes (`/clients`), chave natural frequentemente o **telefone** (único). `POST /` validado com Zod (`validation/httpSchemas.js`). |
 | `modules/drivers` | Motoboys e fila (`/drivers`, `/drivers/queue`). |
-| `modules/menu` | `GET /menu/items` — stub preparado para cardápio dinâmico. |
+| `modules/menu` | `GET /menu/items` — lista `menu_items` (SQLite; vazio até inserir linhas). |
 | `modules/auth` | `GET /auth/status` (evolução futura). |
 | `modules/ai` | Autopilot, insights embutidos no snapshot, roteamento de chat. |
 | `modules/ops` | `buildOperationalSnapshot(db)` — visão única para painel e IA. |
@@ -225,6 +225,6 @@ A pasta `apps/admin-web/` foi substituída por `frontend/`; novas funcionalidade
 
 ## Onde evoluir a seguir
 
-- **Cardápio**: substituir o stub de `GET /menu/items` por fonte real (ERP, JSON importado, etc.) e manter o contrato estável para o atendimento.
+- **Cardápio**: dados em `menu_items` (API `GET /menu/items`); importação / painel CRUD pode evoluir mantendo o contrato.
 - **Integrações**: novos `channel` e formatos de payload → estender `normalizer.js` e testes de webhook; com `webhook_secret` definido, lembrar de enviar `x-guto-webhook-signature` nos testes (HMAC do body).
 - **Auth**: consolidar `modules/auth` com sessão/JWT e proteger rotas sensíveis.

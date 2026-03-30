@@ -86,9 +86,9 @@ Use isto como contrato interno até “fecho” do MVP operacional.
 
 ### P0 — bloqueia uso correto em equipa
 
-- [ ] Garantir que **toda a equipa** usa `frontend/` (não `apps/admin-web`) nos scripts e documentação interna.
-- [ ] **Servir painel em produção:** nginx/`dist` + `VITE_API_URL` correto; ou implementar `express.static` para `frontend/dist` no backend (decisão de arquitetura).
-- [ ] Revisar **CORS** e **proxy** quando API e painel estiverem em domínios diferentes.
+- [x] Documentação principal aponta para `frontend/` (`README.md`); evitar `apps/admin-web` em fluxos novos.
+- [ ] **Servir painel em produção** — **recomendado:** nginx com `frontend/dist` estático + `location /api/` (e WebSocket) para Node interno; build com `VITE_API_URL=/api`. Ver `docs/nginx-example.conf` e `DEPLOY.md`. *Alternativa:* servir `dist` via Express (não implementado no repositório).
+- [ ] Ajustar **`CORS_ORIGINS`** às origens HTTPS reais do painel (incl. `www` se existir) quando front e API forem domínios diferentes.
 
 ### P1 — robustez e segurança
 
@@ -98,7 +98,7 @@ Use isto como contrato interno até “fecho” do MVP operacional.
 
 ### P1 — produto
 
-- [ ] **Menu/cardápio:** evoluir `GET /menu/items` de stub para fonte real; alinhar com atendimento/pedidos.
+- [x] **Menu/cardápio:** `GET /menu/items` lê **`menu_items`** (SQLite). Falta: UI/painel ou import para gerir linhas; atendimento pode consumir a lista quando integrado.
 - [ ] **Auth:** evoluir `GET /auth/status` para sessão/JWT se o painel for exposto na internet.
 
 ### P2 — qualidade de vida

@@ -49,6 +49,14 @@ test('servidor: GET /health responde com JSON esperado', { timeout: 60_000 }, as
         assert.equal(j.service, 'guto-express-backend');
         assert.ok(typeof j.version === 'string' && j.version.length > 0);
         assert.ok(typeof j.node === 'string' && j.node.startsWith('v'));
+
+        const mr = await fetch(`http://127.0.0.1:${port}/menu/items`);
+        assert.equal(mr.ok, true);
+        const menu = await mr.json();
+        assert.equal(menu.ok, true);
+        assert.ok(Array.isArray(menu.items));
+        assert.equal(menu.source, 'database');
+
         success = true;
         break;
       } catch {

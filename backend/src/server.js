@@ -91,7 +91,7 @@ export function buildServerApp() {
   app.use(createAdminApiKeyMiddleware());
 
   app.use('/auth', createAuthRouter());
-  app.use('/menu', createMenuRouter());
+  app.use('/menu', createMenuRouter(db));
   app.use('/settings', createSettingsRouter(db));
   app.use('/clients', createCustomersRouter(db));
   app.use('/drivers', createDriversRouter(db));

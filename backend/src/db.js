@@ -271,3 +271,17 @@ addColumnIfMissing('clients', 'email', 'email TEXT');
 addColumnIfMissing('drivers', 'last_lat', 'last_lat REAL');
 addColumnIfMissing('drivers', 'last_lng', 'last_lng REAL');
 addColumnIfMissing('drivers', 'location_updated_at', 'location_updated_at TEXT');
+
+/** Itens de cardápio (listagem para atendimento / pedidos). */
+db.exec(`
+CREATE TABLE IF NOT EXISTS menu_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  unit_price REAL NOT NULL DEFAULT 0,
+  active INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_menu_items_active_sort ON menu_items (active, sort_order, id);
+`);
