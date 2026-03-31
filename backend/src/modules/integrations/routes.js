@@ -15,6 +15,13 @@ import { countPartnerSyncJobsByStatus } from './sync/outbox.js';
 export function createIntegrationsRouter(db) {
   const router = Router();
 
+  function webhookIngressEnabled() {
+    const env = (process.env.NODE_ENV || 'development').trim().toLowerCase();
+    if (env === 'production') return (process.env.WEBHOOK_ALLOW_PROD || '').trim() === '1';
+    // dev + staging: permitido
+    return true;
+  }
+
   const webhookLimiter = rateLimit({
     windowMs: Math.max(1000, Number(process.env.WEBHOOK_RATE_WINDOW_MS || 60_000) || 60_000),
     max: Math.max(1, Number(process.env.WEBHOOK_RATE_MAX || 200) || 200),
@@ -40,6 +47,13 @@ export function createIntegrationsRouter(db) {
   });
 
   router.post('/integrations/webhook/:channel', webhookLimiter, async (req, res) => {
+    if (!webhookIngressEnabled()) {
+      return res.status(404).json({
+        ok: false,
+        code: 'WEBHOOK_DISABLED',
+        message: 'Webhook desabilitado em producao. Use staging ou habilite explicitamente.',
+      });
+    }
     const channel = req.params.channel;
     let integration = db.prepare('SELECT * FROM integrations WHERE channel = ? LIMIT 1').get(channel);
     if (!integration) {

@@ -60,11 +60,36 @@ export class ApiError extends Error {
   }
 }
 
+const ADMIN_JWT_STORAGE_KEY = 'guto_admin_jwt';
+
+export function getAdminJwt() {
+  try {
+    return (sessionStorage.getItem(ADMIN_JWT_STORAGE_KEY) || '').trim();
+  } catch {
+    return '';
+  }
+}
+
+export function setAdminJwt(token) {
+  const t = String(token || '').trim();
+  try {
+    if (!t) sessionStorage.removeItem(ADMIN_JWT_STORAGE_KEY);
+    else sessionStorage.setItem(ADMIN_JWT_STORAGE_KEY, t);
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
  * @param {string} path
  * @param {RequestInit} [init]
  */
-function attachAdminKey(headers) {
+function attachAuth(headers) {
+  const jwt = getAdminJwt();
+  if (jwt) {
+    if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${jwt}`);
+    return;
+  }
   const k = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
   if (!k) return;
   if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${k}`);
@@ -74,7 +99,7 @@ function attachAdminKey(headers) {
 export async function apiFetch(path, init = {}) {
   const url = joinPath(getApiPublicBase(), path);
   const headers = new Headers(init.headers);
-  attachAdminKey(headers);
+  attachAuth(headers);
   if (init.body != null && typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }

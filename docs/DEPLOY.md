@@ -35,6 +35,7 @@ npm run ci
 | Variável | Obrigatório? | Notas |
 |----------|----------------|-------|
 | `ADMIN_API_KEY` | Sim em produção | Mesmo valor que `VITE_ADMIN_API_KEY` no build do frontend |
+| `ADMIN_JWT_SECRET` | Recomendado | Habilita `POST /auth/login` para trocar a chave por JWT (evita enviar a chave em toda request) |
 | `NODE_ENV` | Recomendado | `production` |
 | `TRUST_PROXY` | Se usar nginx/HAProxy à frente | `1` (ou número de hops) |
 | `METRICS_TOKEN` | Se expõe `/metrics` | Proteger métricas |
@@ -142,6 +143,7 @@ Com proxy a remover cabeçalhos de segurança, use `SMOKE_SKIP_SECURITY_HEADERS=
 1. Abrir **https://pdvgutoexpress.com.br** (e **https://www.pdvgutoexpress.com.br** se usarem `www` — deve redirecionar ou servir o mesmo app).
 2. Confirmar que o build carrega sem erro de consola crítico (F12 → Consola / Rede).
 3. Com **`VITE_ADMIN_API_KEY`** igual ao `ADMIN_API_KEY` do servidor: o painel deve conseguir chamadas autenticadas (ex.: menu, pedidos). Se a chave estiver errada ou em falta, verás **401** nas rotas protegidas e o aviso de autenticação na UI (conforme implementado).
+4. Se `ADMIN_JWT_SECRET` estiver definido no backend, o painel pode trocar a chave por **JWT** (botão **“Usar JWT”** na barra de status). Isso evita enviar a chave em todas as requests (o JWT fica em `sessionStorage` e expira).
 
 ### 3. Fluxo mínimo de negócio (teste)
 

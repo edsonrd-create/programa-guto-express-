@@ -1,5 +1,5 @@
 import React from 'react';
-import { apiGet } from '../services/apiClient.js';
+import { apiGet, apiPost, getAdminJwt, setAdminJwt } from '../services/apiClient.js';
 import { useOpsSnapshot } from '../contexts/OpsSnapshotContext.jsx';
 
 export function StatusBar() {
@@ -7,6 +7,7 @@ export function StatusBar() {
   const [ok, setOk] = React.useState(null);
   const [at, setAt] = React.useState(null);
   const [authStatus, setAuthStatus] = React.useState(null);
+  const [jwt, setJwt] = React.useState(() => getAdminJwt());
 
   const ping = React.useCallback(async () => {
     try {
@@ -36,6 +37,20 @@ export function StatusBar() {
 
   const viteKey = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
   const needsViteKey = Boolean(authStatus?.adminApiKeyConfigured) && !viteKey;
+  const canExchangeJwt = Boolean(authStatus?.jwtEnabled) && Boolean(viteKey);
+
+  async function exchangeJwt() {
+    const r = await apiPost('/auth/login', { admin_key: viteKey });
+    if (r?.ok && r?.token) {
+      setAdminJwt(r.token);
+      setJwt(r.token);
+    }
+  }
+
+  function clearJwt() {
+    setAdminJwt('');
+    setJwt('');
+  }
 
   const st = data?.store;
   const storeLine =
@@ -98,9 +113,24 @@ export function StatusBar() {
           Ação: defina VITE_ADMIN_API_KEY no frontend/.env (igual ao servidor) e reinicie o Vite.
         </span>
       )}
+      {jwt && (
+        <span style={{ opacity: 0.8 }} title="JWT em sessionStorage (não persiste após fechar aba)">
+          Auth: <b style={{ color: '#60a5fa' }}>JWT</b>
+        </span>
+      )}
       <button type="button" className="btn-ghost" onClick={ping} style={{ marginLeft: 'auto' }}>
         Atualizar status
       </button>
+      {canExchangeJwt && !jwt && (
+        <button type="button" className="btn-ghost" onClick={exchangeJwt} title="Troca VITE_ADMIN_API_KEY por JWT">
+          Usar JWT
+        </button>
+      )}
+      {jwt && (
+        <button type="button" className="btn-ghost" onClick={clearJwt} title="Volta a usar VITE_ADMIN_API_KEY">
+          Sair (JWT)
+        </button>
+      )}
     </div>
   );
 }
