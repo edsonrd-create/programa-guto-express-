@@ -1,5 +1,5 @@
 import React from 'react';
-import { apiGet, apiPost, getAdminJwt, setAdminJwt } from '../services/apiClient.js';
+import { apiGet, getAdminJwt, loginAdminWithKey, refreshAdminJwt, setAdminJwt } from '../services/apiClient.js';
 import { useOpsSnapshot } from '../contexts/OpsSnapshotContext.jsx';
 
 export function StatusBar() {
@@ -8,6 +8,7 @@ export function StatusBar() {
   const [at, setAt] = React.useState(null);
   const [authStatus, setAuthStatus] = React.useState(null);
   const [jwt, setJwt] = React.useState(() => getAdminJwt());
+  const [authErr, setAuthErr] = React.useState('');
 
   const ping = React.useCallback(async () => {
     try {
@@ -35,21 +36,37 @@ export function StatusBar() {
     ok === null ? 'Verificando API…' : ok ? 'API online' : 'API offline (suba o backend :3210)';
   const color = ok === null ? '#94a3b8' : ok ? '#34d399' : '#f87171';
 
-  const viteKey = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
-  const needsViteKey = Boolean(authStatus?.adminApiKeyConfigured) && !viteKey;
-  const canExchangeJwt = Boolean(authStatus?.jwtEnabled) && Boolean(viteKey);
+  const authMode = String(authStatus?.authMode || 'mixed');
+  const jwtEnabled = Boolean(authStatus?.jwtEnabled);
 
-  async function exchangeJwt() {
-    const r = await apiPost('/auth/login', { admin_key: viteKey });
-    if (r?.ok && r?.token) {
-      setAdminJwt(r.token);
-      setJwt(r.token);
+  async function loginPrompt() {
+    setAuthErr('');
+    const key = window.prompt('Informe a ADMIN_API_KEY para iniciar sessão:') || '';
+    if (!key.trim()) return;
+    try {
+      const r = await loginAdminWithKey(key);
+      if (r?.ok && r?.token) setJwt(r.token);
+      else setAuthErr('Não foi possível obter JWT.');
+    } catch (e) {
+      setAuthErr(String(e?.message || e));
+    }
+  }
+
+  async function renewJwt() {
+    setAuthErr('');
+    try {
+      const r = await refreshAdminJwt();
+      if (r?.ok && r?.token) setJwt(r.token);
+      else setAuthErr('Falha ao renovar JWT.');
+    } catch (e) {
+      setAuthErr(String(e?.message || e));
     }
   }
 
   function clearJwt() {
     setAdminJwt('');
     setJwt('');
+    setAuthErr('');
   }
 
   const st = data?.store;
@@ -100,7 +117,7 @@ export function StatusBar() {
         </span>
       </span>
       {at && <span style={{ opacity: 0.7 }}>Último ping: {at.toLocaleTimeString('pt-BR')}</span>}
-      {needsViteKey && (
+      {!jwt && jwtEnabled && (
         <span
           style={{
             color: '#fbbf24',
@@ -108,9 +125,9 @@ export function StatusBar() {
             maxWidth: 420,
             lineHeight: 1.35,
           }}
-          title="O backend exige ADMIN_API_KEY"
+          title="Use login runtime para obter JWT"
         >
-          Ação: defina VITE_ADMIN_API_KEY no frontend/.env (igual ao servidor) e reinicie o Vite.
+          Ação: clique em Entrar para trocar a ADMIN_API_KEY por JWT (não expor chave fixa no build).
         </span>
       )}
       {jwt && (
@@ -118,18 +135,17 @@ export function StatusBar() {
           Auth: <b style={{ color: '#60a5fa' }}>JWT</b>
         </span>
       )}
+      {!jwt && authMode === 'jwt_only' && (
+        <span style={{ color: '#fbbf24', fontWeight: 700 }}>Modo jwt_only ativo</span>
+      )}
+      {authErr && <span style={{ color: '#f87171', maxWidth: 360 }}>Auth: {authErr}</span>}
       <button type="button" className="btn-ghost" onClick={ping} style={{ marginLeft: 'auto' }}>
         Atualizar status
       </button>
-      {canExchangeJwt && !jwt && (
-        <button type="button" className="btn-ghost" onClick={exchangeJwt} title="Troca VITE_ADMIN_API_KEY por JWT">
-          Usar JWT
-        </button>
-      )}
+      {jwtEnabled && !jwt && <button type="button" className="btn-ghost" onClick={loginPrompt}>Entrar</button>}
+      {jwt && <button type="button" className="btn-ghost" onClick={renewJwt}>Renovar JWT</button>}
       {jwt && (
-        <button type="button" className="btn-ghost" onClick={clearJwt} title="Volta a usar VITE_ADMIN_API_KEY">
-          Sair (JWT)
-        </button>
+        <button type="button" className="btn-ghost" onClick={clearJwt}>Sair (JWT)</button>
       )}
     </div>
   );

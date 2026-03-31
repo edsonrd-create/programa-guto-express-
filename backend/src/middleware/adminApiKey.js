@@ -1,5 +1,5 @@
 import { timingSafeEqualString } from '../lib/timingSafe.js';
-import { tryVerifyAdminJwt } from '../lib/adminJwt.js';
+import { isAdminJwtOnlyMode, tryVerifyAdminJwt } from '../lib/adminJwt.js';
 
 /**
  * Protege a API administrativa. Parâmetros públicos (sem chave):
@@ -14,6 +14,7 @@ import { tryVerifyAdminJwt } from '../lib/adminJwt.js';
 export function createAdminApiKeyMiddleware() {
   const expected = (process.env.ADMIN_API_KEY || '').trim();
   const production = process.env.NODE_ENV === 'production';
+  const jwtOnlyMode = isAdminJwtOnlyMode();
 
   return async function adminApiKey(req, res, next) {
     if (req.method === 'OPTIONS') return next();
@@ -44,6 +45,23 @@ export function createAdminApiKeyMiddleware() {
     if (fromBearer && fromBearer.split('.').length === 3) {
       const v = await tryVerifyAdminJwt(fromBearer);
       if (v.ok) return next();
+      if (jwtOnlyMode) {
+        res.setHeader('WWW-Authenticate', 'Bearer realm="admin"');
+        return res.status(401).json({
+          ok: false,
+          code: 'UNAUTHORIZED',
+          message: 'JWT invalido/expirado. Faça login novamente em /auth/login.',
+        });
+      }
+    }
+
+    if (jwtOnlyMode) {
+      res.setHeader('WWW-Authenticate', 'Bearer realm="admin"');
+      return res.status(401).json({
+        ok: false,
+        code: 'UNAUTHORIZED',
+        message: 'Modo jwt_only ativo: envie Authorization: Bearer <ADMIN_JWT>.',
+      });
     }
 
     if (!timingSafeEqualString(provided, expected)) {

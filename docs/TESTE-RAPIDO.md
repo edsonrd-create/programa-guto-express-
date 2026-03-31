@@ -9,9 +9,10 @@
 
 A porta **3210** não mostra o painel — use sempre **5173** com o Vite a correr.
 
-## Chave de API (testes reais)
+## Login admin (testes reais)
 
-Se o backend tiver `ADMIN_API_KEY`, o painel precisa da mesma chave em `frontend/.env` como `VITE_ADMIN_API_KEY`.
+Se o backend tiver `ADMIN_API_KEY`, use a mesma chave para **login runtime** no painel (botão **Entrar**).
+Não é obrigatório embutir `VITE_ADMIN_API_KEY` no build de produção.
 
 Na **raiz do repositório**:
 
@@ -19,7 +20,15 @@ Na **raiz do repositório**:
 npm run gen:admin-key
 ```
 
-Copie as duas linhas geradas para `backend/.env` e `frontend/.env`, guarde e reinicie backend + Vite.
+Copie `ADMIN_API_KEY` para `backend/.env`.
+No frontend, para dev local você pode usar fallback estático em `frontend/.env`:
+
+```bash
+VITE_ALLOW_STATIC_ADMIN_KEY=1
+VITE_ADMIN_API_KEY=<mesmo valor do backend>
+```
+
+Em produção, preferir login runtime + JWT e deixar chave estática desativada.
 
 ## Backend
 1. `cd backend`
@@ -51,7 +60,7 @@ No Windows pode usar `BACKUP-DB.cmd` na raiz. Ver `docs/DEPLOY.md` para agendar 
 Com a API acessível por HTTPS (sem precisar de chave):
 
 ```bash
-npm run smoke:deploy -- https://SEU_DOMINIO/api
+SMOKE_EXPECT_AUTH_MODE=jwt_only SMOKE_EXPECT_JWT_ENABLED=1 npm run smoke:deploy -- https://SEU_DOMINIO/api
 ```
 
 Opcional: `SMOKE_PANEL_URL=https://SEU_DOMINIO` (verifica HTML com `#root`). Detalhes em `docs/DEPLOY.md`.

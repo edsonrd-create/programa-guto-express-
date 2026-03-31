@@ -21,8 +21,11 @@ export function getApiPublicBase() {
 /** URL WebSocket do hub operacional (mesmo host/porta que a API). */
 export function getWsOpsUrl(wsPath = '/ws/ops') {
   const pathOnly = wsPath.startsWith('/') ? wsPath : `/${wsPath}`;
-  const secret =
-    (import.meta.env.VITE_OPS_WS_TOKEN || '').trim() || (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
+  const wsToken = (import.meta.env.VITE_OPS_WS_TOKEN || '').trim();
+  const staticKey = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
+  const allowStaticAdminKey =
+    import.meta.env.DEV || String(import.meta.env.VITE_ALLOW_STATIC_ADMIN_KEY || '').trim() === '1';
+  const secret = wsToken || (allowStaticAdminKey ? staticKey : '');
   const q = secret ? `?token=${encodeURIComponent(secret)}` : '';
 
   const base = getApiPublicBase();
@@ -61,23 +64,84 @@ export class ApiError extends Error {
 }
 
 const ADMIN_JWT_STORAGE_KEY = 'guto_admin_jwt';
+const ADMIN_JWT_EXP_STORAGE_KEY = 'guto_admin_jwt_exp';
+
+function nowUnixSec() {
+  return Math.floor(Date.now() / 1000);
+}
+
+function readJwtExpFromToken(token) {
+  try {
+    const parts = String(token || '').split('.');
+    if (parts.length !== 3) return null;
+    const payloadRaw = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payloadRaw + '==='.slice((payloadRaw.length + 3) % 4);
+    const payload = JSON.parse(atob(padded));
+    if (!payload || typeof payload !== 'object') return null;
+    const exp = Number(payload.exp);
+    return Number.isFinite(exp) && exp > 0 ? Math.trunc(exp) : null;
+  } catch {
+    return null;
+  }
+}
 
 export function getAdminJwt() {
   try {
-    return (sessionStorage.getItem(ADMIN_JWT_STORAGE_KEY) || '').trim();
+    const token = (sessionStorage.getItem(ADMIN_JWT_STORAGE_KEY) || '').trim();
+    if (!token) return '';
+    const expRaw = Number(sessionStorage.getItem(ADMIN_JWT_EXP_STORAGE_KEY) || 0);
+    const exp = Number.isFinite(expRaw) && expRaw > 0 ? Math.trunc(expRaw) : readJwtExpFromToken(token);
+    if (exp != null && exp <= nowUnixSec() + 15) {
+      setAdminJwt('');
+      return '';
+    }
+    return token;
   } catch {
     return '';
   }
 }
 
-export function setAdminJwt(token) {
+export function setAdminJwt(token, expiresAtUnixSec = null) {
   const t = String(token || '').trim();
   try {
-    if (!t) sessionStorage.removeItem(ADMIN_JWT_STORAGE_KEY);
-    else sessionStorage.setItem(ADMIN_JWT_STORAGE_KEY, t);
+    if (!t) {
+      sessionStorage.removeItem(ADMIN_JWT_STORAGE_KEY);
+      sessionStorage.removeItem(ADMIN_JWT_EXP_STORAGE_KEY);
+      return;
+    }
+    sessionStorage.setItem(ADMIN_JWT_STORAGE_KEY, t);
+    const exp = Number(expiresAtUnixSec);
+    if (Number.isFinite(exp) && exp > 0) {
+      sessionStorage.setItem(ADMIN_JWT_EXP_STORAGE_KEY, String(Math.trunc(exp)));
+    } else {
+      const inferred = readJwtExpFromToken(t);
+      if (inferred != null) sessionStorage.setItem(ADMIN_JWT_EXP_STORAGE_KEY, String(inferred));
+      else sessionStorage.removeItem(ADMIN_JWT_EXP_STORAGE_KEY);
+    }
   } catch {
     /* ignore */
   }
+}
+
+export async function loginAdminWithKey(adminKey) {
+  const body = { admin_key: String(adminKey || '').trim() };
+  const data = await apiFetch('/auth/login', {
+    method: 'POST',
+    skipAuth: true,
+    body: JSON.stringify(body),
+  });
+  if (data?.ok && typeof data?.token === 'string') {
+    setAdminJwt(data.token, data.expiresAtUnixSec ?? null);
+  }
+  return data;
+}
+
+export async function refreshAdminJwt() {
+  const data = await apiFetch('/auth/refresh', { method: 'POST' });
+  if (data?.ok && typeof data?.token === 'string') {
+    setAdminJwt(data.token, data.expiresAtUnixSec ?? null);
+  }
+  return data;
 }
 
 /**
@@ -90,6 +154,9 @@ function attachAuth(headers) {
     if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${jwt}`);
     return;
   }
+  const allowStaticAdminKey =
+    import.meta.env.DEV || String(import.meta.env.VITE_ALLOW_STATIC_ADMIN_KEY || '').trim() === '1';
+  if (!allowStaticAdminKey) return;
   const k = (import.meta.env.VITE_ADMIN_API_KEY || '').trim();
   if (!k) return;
   if (!headers.has('Authorization')) headers.set('Authorization', `Bearer ${k}`);
@@ -99,7 +166,7 @@ function attachAuth(headers) {
 export async function apiFetch(path, init = {}) {
   const url = joinPath(getApiPublicBase(), path);
   const headers = new Headers(init.headers);
-  attachAuth(headers);
+  if (!init.skipAuth) attachAuth(headers);
   if (init.body != null && typeof init.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }

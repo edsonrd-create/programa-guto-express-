@@ -10,6 +10,8 @@
  *   SMOKE_EXPECT_VERSION=0.2.1  — campo version em /health deve coincidir
  *   SMOKE_SKIP_SECURITY_HEADERS=1 — não exige X-Content-Type-Options / Referrer-Policy / X-Frame-Options
  *   SMOKE_PANEL_URL=https://seudominio.com — GET HTML; verifica 200 e #root (build Vite)
+ *   SMOKE_EXPECT_AUTH_MODE=jwt_only — exige authMode em /auth/status
+ *   SMOKE_EXPECT_JWT_ENABLED=1 — exige jwtEnabled=true em /auth/status
  */
 
 function baseUrl() {
@@ -113,6 +115,18 @@ Opcional: SMOKE_EXPECT_VERSION, SMOKE_SKIP_SECURITY_HEADERS=1, SMOKE_PANEL_URL`)
     console.error('[deploy-smoke] auth.adminApiKeyConfigured em falta', auth);
     process.exit(1);
   }
+  const expectAuthMode = (process.env.SMOKE_EXPECT_AUTH_MODE || '').trim();
+  if (expectAuthMode && String(auth.authMode || '') !== expectAuthMode) {
+    console.error('[deploy-smoke] authMode inesperado', {
+      esperado: expectAuthMode,
+      obtido: auth.authMode,
+    });
+    process.exit(1);
+  }
+  if ((process.env.SMOKE_EXPECT_JWT_ENABLED || '').trim() === '1' && auth.jwtEnabled !== true) {
+    console.error('[deploy-smoke] jwtEnabled esperado true', auth);
+    process.exit(1);
+  }
 
   const panel = (process.env.SMOKE_PANEL_URL || '').trim().replace(/\/$/, '');
   if (panel) {
@@ -134,7 +148,18 @@ Opcional: SMOKE_EXPECT_VERSION, SMOKE_SKIP_SECURITY_HEADERS=1, SMOKE_PANEL_URL`)
     console.log('[deploy-smoke] painel OK', panel);
   }
 
-  console.log('[deploy-smoke] OK — version', health.version, 'node', health.node, 'adminKey', auth.adminApiKeyConfigured);
+  console.log(
+    '[deploy-smoke] OK — version',
+    health.version,
+    'node',
+    health.node,
+    'adminKey',
+    auth.adminApiKeyConfigured,
+    'authMode',
+    auth.authMode ?? 'n/a',
+    'jwtEnabled',
+    auth.jwtEnabled ?? 'n/a',
+  );
 }
 
 main().catch((e) => {

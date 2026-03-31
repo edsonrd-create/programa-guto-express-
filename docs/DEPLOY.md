@@ -34,8 +34,12 @@ npm run ci
 
 | Variável | Obrigatório? | Notas |
 |----------|----------------|-------|
-| `ADMIN_API_KEY` | Sim em produção | Mesmo valor que `VITE_ADMIN_API_KEY` no build do frontend |
-| `ADMIN_JWT_SECRET` | Recomendado | Habilita `POST /auth/login` para trocar a chave por JWT (evita enviar a chave em toda request) |
+| `ADMIN_API_KEY` | Sim em produção | Chave usada no login admin (e fallback opcional por header) |
+| `ADMIN_JWT_SECRET` | Recomendado | Habilita `POST /auth/login` e `POST /auth/refresh` para sessão JWT |
+| `ADMIN_AUTH_MODE` | Recomendado | `jwt_only` (hardening), `mixed` (compat), `api_key_only` (legado) |
+| `ADMIN_JWT_TTL_SECONDS` | Opcional | Tempo de vida do JWT (60–86400; default 3600) |
+| `ADMIN_LOGIN_RATE_MAX` | Opcional | Tentativas de login por janela (default 5) |
+| `ADMIN_LOGIN_RATE_WINDOW_MS` | Opcional | Janela do rate-limit de login (default 60000) |
 | `NODE_ENV` | Recomendado | `production` |
 | `TRUST_PROXY` | Se usar nginx/HAProxy à frente | `1` (ou número de hops) |
 | `METRICS_TOKEN` | Se expõe `/metrics` | Proteger métricas |
@@ -66,7 +70,9 @@ cd frontend && npm ci && npm run build
 ```
 
 - `VITE_API_URL` = URL **pública** da API (ex.: `https://api.seudominio.com` ou `https://seudominio.com/api` conforme o proxy).
-- `VITE_ADMIN_API_KEY` = **igual** a `ADMIN_API_KEY` do servidor (valor injetado no build; não muda em runtime).
+- Hardening recomendado: **não** embutir `VITE_ADMIN_API_KEY` no build de produção.
+- Login operacional: operador informa a chave em runtime (botão **Entrar**) e recebe JWT curto.
+- Se precisar compatibilidade temporária, habilite `VITE_ALLOW_STATIC_ADMIN_KEY=1` e use `VITE_ADMIN_API_KEY` (não recomendado).
 
 ### 5. Proxy reverso (nginx)
 
@@ -142,8 +148,8 @@ Com proxy a remover cabeçalhos de segurança, use `SMOKE_SKIP_SECURITY_HEADERS=
 
 1. Abrir **https://pdvgutoexpress.com.br** (e **https://www.pdvgutoexpress.com.br** se usarem `www` — deve redirecionar ou servir o mesmo app).
 2. Confirmar que o build carrega sem erro de consola crítico (F12 → Consola / Rede).
-3. Com **`VITE_ADMIN_API_KEY`** igual ao `ADMIN_API_KEY` do servidor: o painel deve conseguir chamadas autenticadas (ex.: menu, pedidos). Se a chave estiver errada ou em falta, verás **401** nas rotas protegidas e o aviso de autenticação na UI (conforme implementado).
-4. Se `ADMIN_JWT_SECRET` estiver definido no backend, o painel pode trocar a chave por **JWT** (botão **“Usar JWT”** na barra de status). Isso evita enviar a chave em todas as requests (o JWT fica em `sessionStorage` e expira).
+3. Com `ADMIN_JWT_SECRET` ativo no backend, use **Entrar** no painel para trocar `ADMIN_API_KEY` por JWT. Depois, as chamadas admin usam `Authorization: Bearer <jwt>`.
+4. Em produção, preferir `ADMIN_AUTH_MODE=jwt_only` e manter `VITE_ADMIN_API_KEY` vazio (sem chave estática no `dist`).
 
 ### 3. Fluxo mínimo de negócio (teste)
 
@@ -159,7 +165,7 @@ Com proxy a remover cabeçalhos de segurança, use `SMOKE_SKIP_SECURITY_HEADERS=
 |--------|------------|
 | `/health` 404 | Path do proxy (`/api` vs raiz); `proxy_pass` no nginx. |
 | Consola: *Unsafe attempt to load URL … /api/health from frame … chrome-error* | Abrir `/health` num separador direto ou `curl`; corrigir primeiro falha de DNS/SSL/site em baixo se a página principal não carregar. |
-| Painel em branco ou API 401 | `VITE_ADMIN_API_KEY` no **build** igual a `ADMIN_API_KEY`; voltar a fazer `npm run build` e publicar `dist`. |
+| Painel em branco ou API 401 | Se `jwt_only`, clique **Entrar** e valide `ADMIN_JWT_SECRET`; se usar fallback estático, revisar `VITE_ALLOW_STATIC_ADMIN_KEY` + `VITE_ADMIN_API_KEY` no build. |
 | CORS ou WS recusado | `CORS_ORIGINS` com origem **exata** (com/sem `www`, `https`); nginx a enviar `Upgrade` para `/ws/ops`. |
 | Versão antiga em `/health` | Processo Node antigo a correr; reiniciar serviço (systemd/NSSM) após deploy. |
 
