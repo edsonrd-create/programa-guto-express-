@@ -175,3 +175,15 @@ Com proxy a remover cabeçalhos de segurança, use `SMOKE_SKIP_SECURITY_HEADERS=
 
 - Backend precisa de **volume persistente** (SQLite).
 - Confirmar suporte a **WebSocket** no plano.
+
+---
+
+## Auditoria final automatizada (Linux)
+
+Para fechar deploy com hardening (`jwt_only`) num comando:
+
+```bash
+npm run audit:prod -- www.pdvgutoexpress.com.br https://www.pdvgutoexpress.com.br/api
+```
+
+O script `scripts/prod-audit.sh` valida serviço backend/nginx, `/health`, `/auth/status`, smoke hardening e `certbot renew --dry-run`.
