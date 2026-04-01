@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { NAV_SECTIONS } from '../app/navigation.js';
 
-export function AppSidebar() {
+export function AppSidebar({ onNavigate }) {
   const [query, setQuery] = React.useState('');
   const normalized = query.trim().toLowerCase();
   const sections = React.useMemo(() => {
@@ -67,6 +67,7 @@ export function AppSidebar() {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) => (isActive ? 'nav-item nav-item-active' : 'nav-item')}
+                  onClick={onNavigate}
                 >
                   <span>{item.label}</span>
                   {item.shortcut && (

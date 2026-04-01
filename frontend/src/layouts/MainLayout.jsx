@@ -3,9 +3,9 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useOpsSnapshot } from '../contexts/OpsSnapshotContext.jsx';
 import { AppSidebar } from '../components/AppSidebar.jsx';
 import { StatusBar } from '../components/StatusBar.jsx';
-import { NAV_LABEL_BY_PATH, NAV_SHORTCUTS } from '../app/navigation.js';
+import { NAV_LABEL_BY_PATH, NAV_MODULES, NAV_SHORTCUTS } from '../app/navigation.js';
 
-function MainLayoutMain() {
+function MainLayoutMain({ isMobile, sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { authRequired, error } = useOpsSnapshot();
@@ -26,12 +26,20 @@ function MainLayoutMain() {
         if (match) {
           e.preventDefault();
           navigate(match.to);
+          setSidebarOpen(false);
         }
       }
+      if (e.key === 'Escape') setSidebarOpen(false);
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [navigate]);
+
+  function handleJump(path) {
+    if (!path) return;
+    navigate(path);
+    setSidebarOpen(false);
+  }
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -45,8 +53,30 @@ function MainLayoutMain() {
           background: 'rgba(9, 16, 28, 0.75)',
         }}
       >
+        {isMobile && (
+          <button type="button" className="btn-ghost" onClick={() => setSidebarOpen((v) => !v)}>
+            {sidebarOpen ? 'Fechar menu' : 'Menu'}
+          </button>
+        )}
         <h1 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{title}</h1>
         <span style={{ color: '#64748b', fontSize: 12 }}>Navegação rápida com Alt+1..9</span>
+        <select
+          className="select"
+          style={{ maxWidth: 230, padding: '8px 10px', fontSize: 13 }}
+          value=""
+          onChange={(e) => {
+            handleJump(e.target.value);
+            e.target.value = '';
+          }}
+          title="Troca rápida de módulo"
+        >
+          <option value="">Ir para módulo…</option>
+          {NAV_MODULES.map((m) => (
+            <option key={m.to} value={m.to}>
+              {m.label}
+            </option>
+          ))}
+        </select>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <Link to="/atendimento" className="btn-ghost" style={{ textDecoration: 'none' }}>
             Atendimento
@@ -89,10 +119,51 @@ function MainLayoutMain() {
 }
 
 export default function MainLayout() {
+  const [isMobile, setIsMobile] = React.useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 1024 : false,
+  );
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    function onResize() {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(false);
+    }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <AppSidebar />
-      <MainLayoutMain />
+    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
+      {!isMobile && <AppSidebar />}
+      {isMobile && sidebarOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(2, 6, 23, 0.6)',
+            zIndex: 40,
+          }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      {isMobile && (
+        <div
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 50,
+            transform: sidebarOpen ? 'translateX(0)' : 'translateX(-105%)',
+            transition: 'transform 180ms ease',
+          }}
+        >
+          <AppSidebar onNavigate={() => setSidebarOpen(false)} />
+        </div>
+      )}
+      <MainLayoutMain isMobile={isMobile} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
     </div>
   );
 }
