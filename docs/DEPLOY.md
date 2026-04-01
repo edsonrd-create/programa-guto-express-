@@ -48,6 +48,8 @@ npm run ci
 | `CORS_ORIGINS` | Recom. em prod. com painel noutro host | Origens exatas separadas por vírgula |
 | `GLOBAL_RATE_LIMIT_MAX` | Opcional | Limite global por IP; ver `backend/src/lib/globalRateLimit.js` |
 | `GLOBAL_RATE_LIMIT_WINDOW_MS` | Opcional | Janela em ms (predef.: `60000`) |
+| `WEBHOOK_INGRESS_MODE` | Recomendado p/ integrações | `enabled` (padrão), `staging_only` ou `disabled` |
+| `WEBHOOK_ALLOW_PROD` | Compat legado | Com `staging_only`, use `1` para permitir produção |
 
 ### 2. Base de dados
 
@@ -91,6 +93,12 @@ cd frontend && npm ci && npm run build
 
 - Com `GLOBAL_RATE_LIMIT_MAX` > 0, use **`TRUST_PROXY=1`** (ou hops corretos) para o limite por IP refletir o cliente real atrás do nginx.
 - A API envia cabeçalhos defensivos (`X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`); o nginx pode acrescentar HSTS e políticas adicionais.
+
+### 8. Integrações (webhook)
+
+- Para produção ativa com marketplaces, use `WEBHOOK_INGRESS_MODE=enabled`.
+- Para bloquear entrada externa e usar só staging, `WEBHOOK_INGRESS_MODE=staging_only`.
+- Diagnóstico rápido no painel: tela **Integrações** mostra banner quando o webhook está desativado.
 
 ---
 

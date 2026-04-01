@@ -24,6 +24,7 @@ export async function signWebhookBody(secret, rawBody) {
 
 export const integrationsService = {
   list: () => apiGet('/integrations'),
+  health: () => apiGet('/integrations/health'),
   create: (body) => apiPost('/integrations', body),
   patch: (id, body) => apiPatch(`/integrations/${id}`, body),
   reviewQueue: () => apiGet('/integrations/review-queue'),

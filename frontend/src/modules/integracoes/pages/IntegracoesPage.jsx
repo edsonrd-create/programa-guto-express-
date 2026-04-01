@@ -34,6 +34,7 @@ function errMsg(e) {
 function CanaisPanel() {
   const [rows, setRows] = React.useState([]);
   const [err, setErr] = React.useState('');
+  const [health, setHealth] = React.useState(null);
   const [busy, setBusy] = React.useState(false);
   const [form, setForm] = React.useState({ name: '', channel: '', token: '', webhook_secret: '' });
   const [editingId, setEditingId] = React.useState(null);
@@ -45,7 +46,9 @@ function CanaisPanel() {
   const load = React.useCallback(async () => {
     setErr('');
     try {
-      setRows(await integrationsService.list());
+      const [list, h] = await Promise.all([integrationsService.list(), integrationsService.health().catch(() => null)]);
+      setRows(list);
+      setHealth(h);
     } catch (e) {
       setErr(errMsg(e));
     }
@@ -162,6 +165,22 @@ function CanaisPanel() {
         <br />
         Base API: <code style={{ color: '#93c5fd' }}>{getApiPublicBase()}</code>
       </div>
+      {health && health.webhookIngressEnabled === false && (
+        <div
+          className="err"
+          style={{
+            marginBottom: 12,
+            padding: 10,
+            border: '1px solid rgba(248,113,113,.5)',
+            borderRadius: 10,
+            background: 'rgba(127,29,29,.25)',
+            color: '#fecaca',
+          }}
+        >
+          Webhook desativado no backend ({health.env}/{health.webhookIngressMode}). Configure{' '}
+          <code style={{ color: '#fde68a' }}>WEBHOOK_INGRESS_MODE=enabled</code> para receber integrações em produção.
+        </div>
+      )}
       {err && <div className="err">{err}</div>}
 
       <div className="glass-card" style={{ padding: 20, marginBottom: 20 }}>

@@ -15,10 +15,19 @@ import { countPartnerSyncJobsByStatus } from './sync/outbox.js';
 export function createIntegrationsRouter(db) {
   const router = Router();
 
+  function webhookIngressMode() {
+    const m = (process.env.WEBHOOK_INGRESS_MODE || '').trim().toLowerCase();
+    if (m === 'staging_only' || m === 'disabled') return m;
+    return 'enabled';
+  }
+
   function webhookIngressEnabled() {
     const env = (process.env.NODE_ENV || 'development').trim().toLowerCase();
-    if (env === 'production') return (process.env.WEBHOOK_ALLOW_PROD || '').trim() === '1';
-    // dev + staging: permitido
+    const mode = webhookIngressMode();
+    if (mode === 'disabled') return false;
+    if (mode === 'staging_only' && env === 'production' && (process.env.WEBHOOK_ALLOW_PROD || '').trim() !== '1') {
+      return false;
+    }
     return true;
   }
 
@@ -39,6 +48,21 @@ export function createIntegrationsRouter(db) {
     res.json(db.prepare('SELECT * FROM integrations ORDER BY id DESC').all());
   });
 
+  router.get('/integrations/health', (_req, res) => {
+    const env = (process.env.NODE_ENV || 'development').trim().toLowerCase();
+    const mode = webhookIngressMode();
+    const enabled = webhookIngressEnabled();
+    res.json({
+      ok: true,
+      env,
+      webhookIngressEnabled: enabled,
+      webhookIngressMode: mode,
+      hint: enabled
+        ? 'Webhook de integrações aceitando eventos.'
+        : 'Webhook de integrações desativado para o ambiente atual. Ajuste WEBHOOK_INGRESS_MODE/WEBHOOK_ALLOW_PROD.',
+    });
+  });
+
   router.post('/integrations', (req, res) => {
     const { name, channel, token = null, webhook_secret = null, active = true, auto_accept = false } = req.body;
     const result = db.prepare('INSERT INTO integrations (name, channel, token, webhook_secret, active, auto_accept) VALUES (?, ?, ?, ?, ?, ?)')
@@ -51,7 +75,8 @@ export function createIntegrationsRouter(db) {
       return res.status(404).json({
         ok: false,
         code: 'WEBHOOK_DISABLED',
-        message: 'Webhook desabilitado em producao. Use staging ou habilite explicitamente.',
+        message:
+          'Webhook desabilitado para este ambiente. Ajuste WEBHOOK_INGRESS_MODE (enabled|staging_only|disabled) ou WEBHOOK_ALLOW_PROD=1.',
       });
     }
     const channel = req.params.channel;
