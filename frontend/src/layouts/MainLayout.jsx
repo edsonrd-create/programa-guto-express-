@@ -5,11 +5,36 @@ import { AppSidebar } from '../components/AppSidebar.jsx';
 import { StatusBar } from '../components/StatusBar.jsx';
 import { NAV_LABEL_BY_PATH, NAV_MODULES, NAV_SHORTCUTS } from '../app/navigation.js';
 
+const NAV_FAVORITES_STORAGE_KEY = 'guto_nav_favorites_v1';
+
+function loadFavorites() {
+  try {
+    const raw = localStorage.getItem(NAV_FAVORITES_STORAGE_KEY) || '[]';
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((p) => typeof p === 'string');
+  } catch {
+    return [];
+  }
+}
+
 function MainLayoutMain({ isMobile, sidebarOpen, setSidebarOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { authRequired, error } = useOpsSnapshot();
+  const [favorites, setFavorites] = React.useState(() => loadFavorites());
   const title = NAV_LABEL_BY_PATH[location.pathname] || 'Operação';
+  const currentModule = NAV_MODULES.find((m) => m.to === location.pathname) || null;
+  const isCurrentFavorite = currentModule ? favorites.includes(currentModule.to) : false;
+  const favoriteModules = NAV_MODULES.filter((m) => favorites.includes(m.to));
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(NAV_FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
+    } catch {
+      /* ignore */
+    }
+  }, [favorites]);
 
   React.useEffect(() => {
     function onKeyDown(e) {
@@ -41,12 +66,22 @@ function MainLayoutMain({ isMobile, sidebarOpen, setSidebarOpen }) {
     setSidebarOpen(false);
   }
 
+  function toggleFavoriteCurrent() {
+    if (!currentModule) return;
+    setFavorites((prev) => {
+      if (prev.includes(currentModule.to)) return prev.filter((p) => p !== currentModule.to);
+      const next = [currentModule.to, ...prev];
+      return next.slice(0, 8);
+    });
+  }
+
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
+          flexWrap: 'wrap',
           gap: 10,
           padding: '12px 16px',
           borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -77,6 +112,16 @@ function MainLayoutMain({ isMobile, sidebarOpen, setSidebarOpen }) {
             </option>
           ))}
         </select>
+        {currentModule && (
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={toggleFavoriteCurrent}
+            title="Fixar/desfixar este módulo nos favoritos"
+          >
+            {isCurrentFavorite ? '★ Favorito' : '☆ Favoritar'}
+          </button>
+        )}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           <Link to="/atendimento" className="btn-ghost" style={{ textDecoration: 'none' }}>
             Atendimento
@@ -88,6 +133,23 @@ function MainLayoutMain({ isMobile, sidebarOpen, setSidebarOpen }) {
             Expedição
           </Link>
         </div>
+        {favoriteModules.length > 0 && (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap',
+              marginTop: 2,
+            }}
+          >
+            {favoriteModules.map((m) => (
+              <Link key={m.to} to={m.to} className="btn-ghost" style={{ textDecoration: 'none', fontSize: 12 }}>
+                ★ {m.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
       {authRequired && (
         <div
